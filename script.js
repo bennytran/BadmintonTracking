@@ -229,6 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // Add Enter key functionality
 document.getElementById('playerName').addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent form submission if inside a form
         addPlayer();
     }
 });
