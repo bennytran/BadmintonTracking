@@ -226,11 +226,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadData();
 });
 
-// Add Enter key functionality
-document.getElementById('playerName').addEventListener('keypress', function (e) {
+// Update the event listener to handle Enter key properly
+document.getElementById('playerName').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
-        e.preventDefault(); // Prevent form submission if inside a form
-        addPlayer();
+        e.preventDefault(); // Prevent default behavior
+        addPlayer(); // Add the player directly
+
+        // Keep focus on the input box for next entry
+        this.value = ''; // Clear the input
+        this.focus(); // Keep focus on input box
     }
 });
 
