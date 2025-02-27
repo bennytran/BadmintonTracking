@@ -7,6 +7,9 @@ function loadData() {
         const data = snapshot.val();
         players = data ? Object.values(data) : [];
         displayPlayers();
+    }, (error) => {
+        console.error('Error loading players:', error);
+        alert('Error loading players');
     });
 
     // Listen for attendance changes
@@ -14,6 +17,9 @@ function loadData() {
         const data = snapshot.val();
         attendanceHistory = data ? Object.values(data) : [];
         displayHistory();
+    }, (error) => {
+        console.error('Error loading attendance:', error);
+        alert('Error loading attendance');
     });
 }
 
@@ -31,12 +37,17 @@ function addPlayer() {
         return;
     }
 
-    // Add to Firebase
-    db.ref('players').push(name);
-
-    // Clear input and keep focus
-    playerInput.value = '';
-    playerInput.focus();
+    // Add to Firebase with error handling
+    db.ref('players').push(name)
+        .then(() => {
+            playerInput.value = '';
+            playerInput.focus();
+            showNotification('Player added successfully!');
+        })
+        .catch(error => {
+            console.error('Error adding player:', error);
+            alert('Error adding player');
+        });
 }
 
 function displayPlayers() {
@@ -175,9 +186,14 @@ function formatDate(dateString) {
 function deleteHistory(date) {
     if (confirm('Are you sure you want to delete this attendance record?')) {
         if (confirm('Please confirm again to delete this record.')) {
-            attendanceHistory = attendanceHistory.filter(record => record.date !== date);
-            localStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
-            displayHistory();
+            db.ref(`attendance/${date}`).remove()
+                .then(() => {
+                    showNotification('Record deleted successfully!');
+                })
+                .catch(error => {
+                    console.error('Error deleting record:', error);
+                    alert('Error deleting record');
+                });
         }
     }
 }
@@ -281,4 +297,11 @@ if (typeof module !== 'undefined' && module.exports) {
         getSelectedPlayers,
         toggleSelectAll
     };
-} 
+}
+
+// Add this at the bottom of your script
+window.addEventListener('beforeunload', () => {
+    // Remove Firebase listeners
+    db.ref('players').off();
+    db.ref('attendance').off();
+}); 
