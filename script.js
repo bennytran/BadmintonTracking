@@ -55,6 +55,62 @@ function removePlayer(name) {
     displayPlayers();
 }
 
+function displayHistory() {
+    const historyDiv = document.getElementById('attendanceHistory');
+    historyDiv.innerHTML = `
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Present Players</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    `;
+
+    const tbody = historyDiv.querySelector('tbody');
+
+    // Sort by date in descending order and remove duplicates
+    const uniqueDates = {};
+    attendanceHistory.forEach(record => {
+        if (!uniqueDates[record.date]) {
+            uniqueDates[record.date] = record.players;
+        }
+    });
+
+    Object.entries(uniqueDates)
+        .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA))
+        .forEach(([date, players]) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${formatDate(date)}</td>
+                <td>${players.join(', ')}</td>
+                <td>
+                    <button class="delete-btn" onclick="deleteHistory('${date}')">
+                        Delete
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+}
+
+function formatDate(dateString) {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+}
+
+function deleteHistory(date) {
+    if (confirm('Are you sure you want to delete this attendance record?')) {
+        attendanceHistory = attendanceHistory.filter(record => record.date !== date);
+        localStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
+        displayHistory();
+    }
+}
+
 function saveAttendance() {
     const date = document.getElementById('attendanceDate').value;
     if (!date) {
@@ -66,54 +122,36 @@ function saveAttendance() {
         document.getElementById(`check-${player}`).checked
     );
 
-    // Check if date already exists
-    const existingDateIndex = attendanceHistory.findIndex(record => record.date === date);
-
-    if (existingDateIndex !== -1) {
-        // Check for duplicate players
-        const existingPlayers = attendanceHistory[existingDateIndex].players;
-        const newPlayers = [];
-        const duplicatePlayers = [];
-
-        presentPlayers.forEach(player => {
-            if (!existingPlayers.includes(player)) {
-                newPlayers.push(player);
-            } else {
-                duplicatePlayers.push(player);
-            }
-        });
-
-        if (duplicatePlayers.length > 0) {
-            alert(`Players ${duplicatePlayers.join(', ')} already exist for this date. Only adding new players.`);
-        }
-
-        // Update existing record with new players
-        attendanceHistory[existingDateIndex].players = [...existingPlayers, ...newPlayers];
-    } else {
-        // Add new date record
-        attendanceHistory.push({
-            date: date,
-            players: presentPlayers
-        });
+    if (presentPlayers.length === 0) {
+        alert('Please select at least one player');
+        return;
     }
+
+    // Remove any existing records for this date
+    attendanceHistory = attendanceHistory.filter(record => record.date !== date);
+
+    // Add the new record
+    attendanceHistory.push({
+        date: date,
+        players: presentPlayers
+    });
 
     localStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
     displayHistory();
+
+    // Show success message
+    showNotification('Attendance saved successfully!');
 }
 
-function displayHistory() {
-    const historyDiv = document.getElementById('attendanceHistory');
-    historyDiv.innerHTML = '';
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
 
-    attendanceHistory.sort((a, b) => new Date(b.date) - new Date(a.date))
-        .forEach(record => {
-            const div = document.createElement('div');
-            div.innerHTML = `
-                <h3>${record.date}</h3>
-                <p>Present: ${record.players.join(', ')}</p>
-            `;
-            historyDiv.appendChild(div);
-        });
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
 // Initialize the date input with today's date
