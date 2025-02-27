@@ -228,4 +228,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('attendanceDate').value = today;
     loadData();
-}); 
+});
+
+// Export functions for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        addPlayer: function () {
+            const playerInput = document.getElementById('playerName');
+            const name = playerInput.value.trim();
+
+            if (!name) {
+                alert('Please enter a player name');
+                return;
+            }
+
+            if (players.includes(name)) {
+                alert('Player already exists in the list');
+                return;
+            }
+
+            db.ref('players').push(name);
+            playerInput.value = '';
+            playerInput.focus();
+        },
+
+        saveAttendance: function () {
+            const date = document.getElementById('attendanceDate').value;
+            if (!date) {
+                alert('Please select a date');
+                return;
+            }
+
+            const selectedPlayers = getSelectedPlayers();
+            if (selectedPlayers.length === 0) {
+                alert('Please select at least one player');
+                return;
+            }
+
+            db.ref(`attendance/${date}`).set({
+                date: date,
+                players: selectedPlayers
+            });
+
+            showNotification('Attendance saved successfully!');
+        },
+
+        // Add other functions you want to test
+        displayPlayers,
+        removePlayer,
+        loadData,
+        togglePlayerSelection,
+        getSelectedPlayers,
+        toggleSelectAll
+    };
+} 
