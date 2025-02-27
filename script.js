@@ -1,10 +1,6 @@
-import { getDatabase, ref, onValue, push, set, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-
 let players = [];
 let attendanceHistory = [];
-const database = getDatabase();
 
-// Load data from Firebase when the page loads
 function loadData() {
     // Listen for players changes
     db.ref('players').on('value', (snapshot) => {
@@ -117,14 +113,13 @@ function confirmRemove(player) {
 }
 
 function removePlayer(name) {
-    const playersRef = ref(database, 'players');
-    get(playersRef).then((snapshot) => {
+    db.ref('players').once('value').then((snapshot) => {
         const data = snapshot.val();
         if (data) {
             const updatedPlayers = Object.entries(data)
                 .filter(([_, value]) => value !== name)
                 .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
-            set(playersRef, updatedPlayers);
+            db.ref('players').set(updatedPlayers);
         }
     });
 }
@@ -201,8 +196,7 @@ function saveAttendance() {
     }
 
     // Update Firebase
-    const attendanceRef = ref(database, `attendance/${date}`);
-    set(attendanceRef, {
+    db.ref(`attendance/${date}`).set({
         date: date,
         players: selectedPlayers
     });
@@ -221,43 +215,17 @@ function showNotification(message) {
     }, 3000);
 }
 
-// Initialize the date input with today's date
+// Add Enter key functionality
+document.getElementById('playerName').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        addPlayer(); // Call addPlayer directly
+    }
+});
+
+// Initialize when document is ready
 document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('attendanceDate').value = today;
     loadData();
-});
-
-// Update the event listener to work with the button
-document.getElementById('playerName').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        // Find and click the actual button
-        const addPlayerBtn = document.getElementById('addPlayerBtn');
-        if (addPlayerBtn) {
-            addPlayerBtn.click();
-        }
-
-        // Keep focus on input
-        this.focus();
-    }
-});
-
-// Example implementation using Firebase
-
-// Initialize Firebase (in your script.js)
-const firebaseConfig = {
-    // Your Firebase config here
-    // You'll get this from Firebase Console
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// Listen for changes
-db.ref('players').on('value', (snapshot) => {
-    const data = snapshot.val();
-    players = Object.values(data || {});
-    displayPlayers();
 }); 
