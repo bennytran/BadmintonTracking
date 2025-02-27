@@ -20,7 +20,7 @@
         <div class="name-list-section">
             <h2>Name List</h2>
             <div id="playerList" class="player-list">
-                <!-- Players will be added here dynamically -->
+                <!-- Select All button and Players will be added here dynamically -->
             </div>
         </div>
 
@@ -34,11 +34,24 @@
 
         <div class="history-section">
             <h2>Attendance History</h2>
-            <div id="attendanceHistory">
+            <div id="attendanceHistory" class="history-container">
                 <!-- History table will be added here -->
             </div>
         </div>
     </div>
+
+    <!-- Modal template (will be hidden by default) -->
+    <div id="confirmationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Remove Player</h3>
+            <p id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button id="confirmBtn" class="confirm-btn">Confirm</button>
+                <button onclick="closeModal()" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 

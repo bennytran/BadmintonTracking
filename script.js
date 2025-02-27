@@ -35,34 +35,78 @@ function addPlayer() {
 
 function displayPlayers() {
     const playerList = document.getElementById('playerList');
-    playerList.innerHTML = '';
+    playerList.innerHTML = `
+        <div class="select-all-container">
+            <button class="select-all-btn" onclick="toggleSelectAll()">Select All</button>
+        </div>
+    `;
 
     players.forEach(player => {
         const div = document.createElement('div');
         div.className = 'player-item';
         div.innerHTML = `
             <span class="player-name">${player}</span>
-            <button class="add-btn" onclick="togglePlayer(this, '${player}')">Add</button>
-            <button class="remove-btn" onclick="confirmRemovePlayer('${player}')">Remove</button>
+            <div class="button-group">
+                <button class="add-btn" onclick="togglePlayerSelection(this, '${player}')" data-player="${player}">Add</button>
+                <button class="remove-btn" onclick="showRemoveConfirmation('${player}')">Remove</button>
+            </div>
         `;
         playerList.appendChild(div);
     });
 }
 
-function togglePlayer(button, player) {
+function togglePlayerSelection(button, player) {
     button.classList.toggle('selected');
-    const checkbox = document.getElementById(`check-${player}`);
-    if (checkbox) {
-        checkbox.checked = !button.classList.contains('selected');
-    }
+    // Store selection state
+    const selectedPlayers = getSelectedPlayers();
+    localStorage.setItem('selectedPlayers', JSON.stringify(selectedPlayers));
 }
 
-function confirmRemovePlayer(name) {
-    if (confirm('Are you sure you want to remove this player?')) {
-        if (confirm('Please confirm again to remove this player.')) {
-            removePlayer(name);
+function getSelectedPlayers() {
+    return Array.from(document.querySelectorAll('.add-btn.selected'))
+        .map(btn => btn.getAttribute('data-player'));
+}
+
+function toggleSelectAll() {
+    const allButtons = document.querySelectorAll('.add-btn');
+    const selectAllBtn = document.querySelector('.select-all-btn');
+    const areAllSelected = Array.from(allButtons).every(btn => btn.classList.contains('selected'));
+
+    allButtons.forEach(btn => {
+        if (areAllSelected) {
+            btn.classList.remove('selected');
+        } else {
+            btn.classList.add('selected');
         }
-    }
+    });
+
+    selectAllBtn.textContent = areAllSelected ? 'Select All' : 'Deselect All';
+}
+
+function showRemoveConfirmation(player) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Remove Player</h3>
+            <p>Are you sure you want to remove ${player}?</p>
+            <div class="modal-buttons">
+                <button onclick="confirmRemove('${player}')" class="confirm-btn">Confirm</button>
+                <button onclick="closeModal()" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeModal() {
+    const modal = document.querySelector('.modal');
+    if (modal) modal.remove();
+}
+
+function confirmRemove(player) {
+    removePlayer(player);
+    closeModal();
 }
 
 function removePlayer(name) {
@@ -136,11 +180,8 @@ function saveAttendance() {
         return;
     }
 
-    const presentPlayers = players.filter(player =>
-        document.getElementById(`check-${player}`).checked
-    );
-
-    if (presentPlayers.length === 0) {
+    const selectedPlayers = getSelectedPlayers();
+    if (selectedPlayers.length === 0) {
         alert('Please select at least one player');
         return;
     }
@@ -151,13 +192,11 @@ function saveAttendance() {
     // Add the new record
     attendanceHistory.push({
         date: date,
-        players: presentPlayers
+        players: selectedPlayers
     });
 
     localStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
     displayHistory();
-
-    // Show success message
     showNotification('Attendance saved successfully!');
 }
 
