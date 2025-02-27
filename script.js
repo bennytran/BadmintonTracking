@@ -36,9 +36,11 @@ function addPlayer() {
     }
 
     // Add to Firebase
-    const playersRef = ref(database, 'players');
-    push(playersRef, name);
+    db.ref('players').push(name);
+
+    // Clear input and keep focus
     playerInput.value = '';
+    playerInput.focus();
 }
 
 function displayPlayers() {
@@ -226,15 +228,18 @@ document.addEventListener('DOMContentLoaded', () => {
     loadData();
 });
 
-// Update the event listener to handle Enter key properly
+// Update the event listener to work with the button
 document.getElementById('playerName').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
-        e.preventDefault(); // Prevent default behavior
-        addPlayer(); // Add the player directly
+        e.preventDefault();
+        // Find and click the actual button
+        const addPlayerBtn = document.getElementById('addPlayerBtn');
+        if (addPlayerBtn) {
+            addPlayerBtn.click();
+        }
 
-        // Keep focus on the input box for next entry
-        this.value = ''; // Clear the input
-        this.focus(); // Keep focus on input box
+        // Keep focus on input
+        this.focus();
     }
 });
 
