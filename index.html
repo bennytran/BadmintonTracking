@@ -1,1 +1,41 @@
- 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badminton Club Attendance</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Badminton Club Attendance</h1>
+
+        <div class="add-player-section">
+            <input type="text" id="playerName" placeholder="Enter player name">
+            <button onclick="addPlayer()">Add Player</button>
+        </div>
+
+        <div class="attendance-section">
+            <h2>Today's Attendance</h2>
+            <div class="date-picker">
+                <input type="date" id="attendanceDate">
+            </div>
+            <div id="playerList" class="player-list">
+                <!-- Players will be added here dynamically -->
+            </div>
+            <button onclick="saveAttendance()">Save Attendance</button>
+        </div>
+
+        <div class="history-section">
+            <h2>Attendance History</h2>
+            <div id="attendanceHistory">
+                <!-- History will be displayed here -->
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
