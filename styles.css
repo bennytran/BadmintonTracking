@@ -3,48 +3,83 @@
     margin: 0 auto;
     padding: 20px;
     font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .add-player-section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
     margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.player-list {
+.attendance-section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
     margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.history-section {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
 
 .player-item {
     display: flex;
     align-items: center;
     margin: 10px 0;
-    padding: 10px;
-    background-color: #f5f5f5;
+    padding: 15px;
+    background-color: #f8f9fa;
     border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.player-item:hover {
+    background-color: #e9ecef;
 }
 
 .player-item input[type="checkbox"] {
     margin-right: 10px;
 }
 
-.history-section {
-    margin-top: 30px;
-}
-
 button {
     padding: 8px 16px;
-    background-color: #4CAF50;
+    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #0056b3;
 }
 
-input[type="text"] {
+h1 {
+    color: #007bff;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h2 {
+    color: #495057;
+    margin-bottom: 20px;
+}
+
+input[type="text"],
+input[type="date"] {
     padding: 8px;
     margin-right: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    width: 200px;
 }

@@ -17,12 +17,20 @@ function addPlayer() {
     const playerInput = document.getElementById('playerName');
     const name = playerInput.value.trim();
 
-    if (name && !players.includes(name)) {
-        players.push(name);
-        localStorage.setItem('players', JSON.stringify(players));
-        displayPlayers();
-        playerInput.value = '';
+    if (!name) {
+        alert('Please enter a player name');
+        return;
     }
+
+    if (players.includes(name)) {
+        alert('Player already exists in the list');
+        return;
+    }
+
+    players.push(name);
+    localStorage.setItem('players', JSON.stringify(players));
+    displayPlayers();
+    playerInput.value = '';
 }
 
 function displayPlayers() {
@@ -58,12 +66,37 @@ function saveAttendance() {
         document.getElementById(`check-${player}`).checked
     );
 
-    const attendance = {
-        date: date,
-        players: presentPlayers
-    };
+    // Check if date already exists
+    const existingDateIndex = attendanceHistory.findIndex(record => record.date === date);
 
-    attendanceHistory.push(attendance);
+    if (existingDateIndex !== -1) {
+        // Check for duplicate players
+        const existingPlayers = attendanceHistory[existingDateIndex].players;
+        const newPlayers = [];
+        const duplicatePlayers = [];
+
+        presentPlayers.forEach(player => {
+            if (!existingPlayers.includes(player)) {
+                newPlayers.push(player);
+            } else {
+                duplicatePlayers.push(player);
+            }
+        });
+
+        if (duplicatePlayers.length > 0) {
+            alert(`Players ${duplicatePlayers.join(', ')} already exist for this date. Only adding new players.`);
+        }
+
+        // Update existing record with new players
+        attendanceHistory[existingDateIndex].players = [...existingPlayers, ...newPlayers];
+    } else {
+        // Add new date record
+        attendanceHistory.push({
+            date: date,
+            players: presentPlayers
+        });
+    }
+
     localStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
     displayHistory();
 }
