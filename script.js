@@ -1,16 +1,24 @@
+import { getDatabase, ref, onValue, push, set, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
+
 let players = [];
 let attendanceHistory = [];
+const database = getDatabase();
 
-// Load data from localStorage when the page loads
+// Load data from Firebase when the page loads
 function loadData() {
-    const savedPlayers = localStorage.getItem('players');
-    const savedHistory = localStorage.getItem('attendanceHistory');
+    // Listen for players changes
+    db.ref('players').on('value', (snapshot) => {
+        const data = snapshot.val();
+        players = data ? Object.values(data) : [];
+        displayPlayers();
+    });
 
-    if (savedPlayers) players = JSON.parse(savedPlayers);
-    if (savedHistory) attendanceHistory = JSON.parse(savedHistory);
-
-    displayPlayers();
-    displayHistory();
+    // Listen for attendance changes
+    db.ref('attendance').on('value', (snapshot) => {
+        const data = snapshot.val();
+        attendanceHistory = data ? Object.values(data) : [];
+        displayHistory();
+    });
 }
 
 function addPlayer() {
@@ -27,9 +35,9 @@ function addPlayer() {
         return;
     }
 
-    players.push(name);
-    localStorage.setItem('players', JSON.stringify(players));
-    displayPlayers();
+    // Add to Firebase
+    const playersRef = ref(database, 'players');
+    push(playersRef, name);
     playerInput.value = '';
 }
 
@@ -57,9 +65,6 @@ function displayPlayers() {
 
 function togglePlayerSelection(button, player) {
     button.classList.toggle('selected');
-    // Store selection state
-    const selectedPlayers = getSelectedPlayers();
-    localStorage.setItem('selectedPlayers', JSON.stringify(selectedPlayers));
 }
 
 function getSelectedPlayers() {
@@ -110,9 +115,16 @@ function confirmRemove(player) {
 }
 
 function removePlayer(name) {
-    players = players.filter(player => player !== name);
-    localStorage.setItem('players', JSON.stringify(players));
-    displayPlayers();
+    const playersRef = ref(database, 'players');
+    get(playersRef).then((snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const updatedPlayers = Object.entries(data)
+                .filter(([_, value]) => value !== name)
+                .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
+            set(playersRef, updatedPlayers);
+        }
+    });
 }
 
 function displayHistory() {
@@ -186,17 +198,13 @@ function saveAttendance() {
         return;
     }
 
-    // Remove any existing records for this date
-    attendanceHistory = attendanceHistory.filter(record => record.date !== date);
-
-    // Add the new record
-    attendanceHistory.push({
+    // Update Firebase
+    const attendanceRef = ref(database, `attendance/${date}`);
+    set(attendanceRef, {
         date: date,
         players: selectedPlayers
     });
 
-    localStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
-    displayHistory();
     showNotification('Attendance saved successfully!');
 }
 
@@ -216,4 +224,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('attendanceDate').value = today;
     loadData();
+});
+
+// Add Enter key functionality
+document.getElementById('playerName').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        addPlayer();
+    }
+});
+
+// Example implementation using Firebase
+
+// Initialize Firebase (in your script.js)
+const firebaseConfig = {
+    // Your Firebase config here
+    // You'll get this from Firebase Console
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Listen for changes
+db.ref('players').on('value', (snapshot) => {
+    const data = snapshot.val();
+    players = Object.values(data || {});
+    displayPlayers();
 }); 

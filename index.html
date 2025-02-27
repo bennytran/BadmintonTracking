@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Badminton Club Attendance</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js"></script>
 </head>
 
 <body>
@@ -52,6 +54,25 @@
         </div>
     </div>
 
+    <!-- Initialize Firebase -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFZMXpozHQsA2YQrNkxCQFNBrIuPAWBLo",
+            authDomain: "badmintontracking.firebaseapp.com",
+            projectId: "badmintontracking",
+            storageBucket: "badmintontracking.firebasestorage.app",
+            messagingSenderId: "1076875481896",
+            appId: "1:1076875481896:web:610468fab611ce9b55b61d",
+            measurementId: "G-R6T06V8MXG",
+            databaseURL: "https://badmintontracking-default-rtdb.firebaseio.com"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+    </script>
+
+    <!-- Your main script -->
     <script src="script.js"></script>
 </body>
 
