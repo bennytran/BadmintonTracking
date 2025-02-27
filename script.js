@@ -41,12 +41,28 @@ function displayPlayers() {
         const div = document.createElement('div');
         div.className = 'player-item';
         div.innerHTML = `
-            <input type="checkbox" id="check-${player}">
-            <label for="check-${player}">${player}</label>
-            <button onclick="removePlayer('${player}')" style="margin-left: auto">Remove</button>
+            <span class="player-name">${player}</span>
+            <button class="add-btn" onclick="togglePlayer(this, '${player}')">Add</button>
+            <button class="remove-btn" onclick="confirmRemovePlayer('${player}')">Remove</button>
         `;
         playerList.appendChild(div);
     });
+}
+
+function togglePlayer(button, player) {
+    button.classList.toggle('selected');
+    const checkbox = document.getElementById(`check-${player}`);
+    if (checkbox) {
+        checkbox.checked = !button.classList.contains('selected');
+    }
+}
+
+function confirmRemovePlayer(name) {
+    if (confirm('Are you sure you want to remove this player?')) {
+        if (confirm('Please confirm again to remove this player.')) {
+            removePlayer(name);
+        }
+    }
 }
 
 function removePlayer(name) {
@@ -105,9 +121,11 @@ function formatDate(dateString) {
 
 function deleteHistory(date) {
     if (confirm('Are you sure you want to delete this attendance record?')) {
-        attendanceHistory = attendanceHistory.filter(record => record.date !== date);
-        localStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
-        displayHistory();
+        if (confirm('Please confirm again to delete this record.')) {
+            attendanceHistory = attendanceHistory.filter(record => record.date !== date);
+            localStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
+            displayHistory();
+        }
     }
 }
 

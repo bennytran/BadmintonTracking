@@ -17,21 +17,25 @@
             <button onclick="addPlayer()">Add Player</button>
         </div>
 
+        <div class="name-list-section">
+            <h2>Name List</h2>
+            <div id="playerList" class="player-list">
+                <!-- Players will be added here dynamically -->
+            </div>
+        </div>
+
         <div class="attendance-section">
             <h2>Today's Attendance</h2>
             <div class="date-picker">
                 <input type="date" id="attendanceDate">
             </div>
-            <div id="playerList" class="player-list">
-                <!-- Players will be added here dynamically -->
-            </div>
-            <button onclick="saveAttendance()">Save Attendance</button>
+            <button onclick="saveAttendance()" class="save-btn">Save Attendance</button>
         </div>
 
         <div class="history-section">
             <h2>Attendance History</h2>
             <div id="attendanceHistory">
-                <!-- History will be displayed here -->
+                <!-- History table will be added here -->
             </div>
         </div>
     </div>
