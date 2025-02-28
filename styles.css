@@ -1,10 +1,10 @@
 /* Light theme with good contrast */
 :root {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
-    --bg-tertiary: #e9ecef;
-    --text-primary: #2c3e50;
-    --accent-blue: #4a90e2;
+    --bg-primary: #F0F2F5;
+    --bg-white: #FFFFFF;
+    --text-primary: #333333;
+    --accent-blue: #3498db;
+    --accent-blue-dark: #2980b9;
     --accent-green: #28a745;
     --accent-red: #dc3545;
     --border-color: #dee2e6;
@@ -232,34 +232,31 @@ input[type="date"] {
     position: relative;
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
 .search-input {
-    width: 100%;
-    padding: 10px 40px 10px 15px;
+    flex-grow: 1;
+    padding: 10px 15px;
     border: 2px solid var(--border-color);
     border-radius: 6px;
     font-size: 14px;
     color: var(--text-primary);
-    background-color: white;
-    transition: all 0.2s ease;
-}
-
-.search-input:focus {
-    border-color: var(--accent-blue);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    background-color: var(--bg-white);
 }
 
 .search-button {
-    position: absolute;
-    right: 5px;
-    padding: 8px;
+    padding: 10px 15px;
     background-color: var(--accent-blue);
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     color: white;
     cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-button:hover {
+    background-color: var(--accent-blue-dark);
 }
 
 .search-dropdown {
@@ -421,4 +418,101 @@ input[type="date"] {
     justify-content: space-between;
     align-items: center;
     gap: 15px;
+}
+
+/* Date input and Save button */
+.date-container {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+input[type="date"] {
+    padding: 12px 15px;
+    font-size: 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 6px;
+    min-width: 200px;
+}
+
+.save-attendance-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+    background-color: var(--accent-blue);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.save-attendance-btn:hover {
+    background-color: var(--accent-blue-dark);
+}
+
+/* History section */
+.history-section {
+    background-color: var(--bg-white);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.history-title {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.delete-all-history {
+    padding: 8px 16px;
+    background-color: var(--accent-red);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    align-self: flex-end;
+}
+
+.delete-all-history:hover {
+    background-color: #c82333;
+}
+
+/* Update table styles */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.history-table th {
+    background-color: var(--accent-blue);
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+.history-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.delete-btn {
+    padding: 6px 12px;
+    background-color: var(--accent-red);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
 }
