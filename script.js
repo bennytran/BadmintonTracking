@@ -29,18 +29,18 @@ document.addEventListener('DOMContentLoaded', () => {
     dateInput.value = today;
     dateInput.min = today; // Prevent selecting past dates
 
-    // Add event listener for player name input
+    // Add player input event listener
     const playerInput = document.getElementById('playerNameInput');
     if (playerInput) {
-        playerInput.addEventListener('keypress', function (e) {
+        playerInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 addPlayer();
             }
         });
     }
 
-    // Add event listener for Add Player button
-    const addPlayerBtn = document.querySelector('.add-player-btn');
+    // Add button click event listener
+    const addPlayerBtn = document.getElementById('addPlayerBtn');
     if (addPlayerBtn) {
         addPlayerBtn.addEventListener('click', addPlayer);
     }
@@ -72,6 +72,11 @@ function loadData() {
 
 function addPlayer() {
     const playerInput = document.getElementById('playerNameInput');
+    if (!playerInput) {
+        console.error('Player input element not found');
+        return;
+    }
+
     const name = playerInput.value.trim();
 
     if (!name) {
