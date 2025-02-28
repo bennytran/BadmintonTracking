@@ -433,13 +433,21 @@ input[type="date"] {
 
 /* Date input and Save button */
 .date-container {
-    display: flex;
-    gap: 15px;
-    align-items: center;
+    background-color: var(--bg-white);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
 }
 
-input[type="date"] {
+.date-input-group {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.date-input {
     padding: 12px 15px;
     font-size: 16px;
     border: 2px solid var(--border-color);
@@ -519,4 +527,15 @@ input[type="date"] {
 
 .delete-btn:hover {
     background-color: #c82333;
+}
+
+/* Remove duplicate history header styles */
+.history-table thead tr {
+    background-color: #e3f2fd;
+}
+
+.history-table th {
+    padding: 12px;
+    text-align: left;
+    color: var(--text-primary);
 }

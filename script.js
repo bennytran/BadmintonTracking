@@ -86,10 +86,15 @@ function displayPlayers() {
         groupedPlayers[letter].forEach(player => {
             const playerItem = document.createElement('div');
             playerItem.className = 'player-item';
+            const isSelected = selectedPlayers.has(player);
             playerItem.innerHTML = `
                 <span class="player-name">${player}</span>
                 <div class="button-group">
-                    <button class="add-btn" onclick="togglePlayerSelection(this, '${player}')" data-player="${player}">Add</button>
+                    <button class="add-btn ${isSelected ? 'selected' : ''}" 
+                            onclick="togglePlayerSelection(this, '${player}')" 
+                            data-player="${player}"
+                            style="background-color: ${isSelected ? '#6c757d' : ''}"
+                    >Add</button>
                     <button class="remove-btn" onclick="showRemoveConfirmation('${player}')">Remove</button>
                 </div>
             `;
@@ -108,6 +113,14 @@ function displayPlayers() {
         header.style.top = '0';
         header.style.zIndex = '10';
     });
+
+    // Update select all button text
+    const selectAllBtn = document.querySelector('.select-all-btn');
+    const allButtons = document.querySelectorAll('.add-btn');
+    const areAllSelected = Array.from(allButtons).every(btn => btn.classList.contains('selected'));
+    if (selectAllBtn) {
+        selectAllBtn.textContent = areAllSelected ? 'Deselect All' : 'Select All';
+    }
 }
 
 function togglePlayerSelection(button, playerName) {
@@ -131,14 +144,19 @@ function toggleSelectAll() {
     const areAllSelected = Array.from(allButtons).every(btn => btn.classList.contains('selected'));
 
     allButtons.forEach(btn => {
+        const playerName = btn.getAttribute('data-player');
         if (areAllSelected) {
             btn.classList.remove('selected');
+            btn.style.backgroundColor = ''; // Reset to default green
+            selectedPlayers.delete(playerName);
         } else {
             btn.classList.add('selected');
+            btn.style.backgroundColor = '#6c757d'; // Grey
+            selectedPlayers.add(playerName);
         }
     });
 
-    selectAllBtn.textContent = areAllSelected ? 'Select All' : 'Deselect All';
+    selectAllBtn.textContent = areAllSelected ? 'Deselect All' : 'Select All';
 }
 
 function showRemoveConfirmation(player) {
