@@ -5,22 +5,17 @@ let selectedSearchItem = -1;
 let selectedPlayers = new Set();
 
 function loadData() {
-    return db.ref('players').once('value')
-        .then((snapshot) => {
-            players = []; // Clear existing array
-            snapshot.forEach((childSnapshot) => {
-                const playerName = childSnapshot.val();
-                if (playerName) {
-                    players.push(playerName);
-                }
-            });
-            players.sort((a, b) => a.localeCompare(b));
-            displayPlayers();
-        })
-        .catch((error) => {
-            console.error('Error loading data:', error);
-            alert('Error loading player list');
+    db.ref('players').on('value', (snapshot) => {
+        players = [];
+        snapshot.forEach((childSnapshot) => {
+            const playerName = childSnapshot.val();
+            if (playerName) {
+                players.push(playerName);
+            }
         });
+        players.sort((a, b) => a.localeCompare(b));
+        displayPlayers();
+    });
 
     // Listen for attendance changes
     db.ref('attendance').on('value', (snapshot) => {
@@ -73,11 +68,9 @@ function displayPlayers() {
     const playerList = document.getElementById('playerList');
     playerList.innerHTML = '';
 
-    // Sort and group players
-    const sortedPlayers = [...players].sort((a, b) => a.localeCompare(b));
+    // Group players by first letter
     const groupedPlayers = {};
-
-    sortedPlayers.forEach(player => {
+    players.forEach(player => {
         const firstLetter = player.charAt(0).toUpperCase();
         if (!groupedPlayers[firstLetter]) {
             groupedPlayers[firstLetter] = [];
@@ -85,7 +78,7 @@ function displayPlayers() {
         groupedPlayers[firstLetter].push(player);
     });
 
-    // Create sections
+    // Display players by group
     Object.keys(groupedPlayers).sort().forEach(letter => {
         const letterSection = document.createElement('div');
         letterSection.className = 'letter-section';
@@ -99,14 +92,14 @@ function displayPlayers() {
             const playerItem = document.createElement('div');
             playerItem.className = 'player-item';
             const isSelected = selectedPlayers.has(player);
+
             playerItem.innerHTML = `
                 <span class="player-name">${player}</span>
                 <div class="button-group">
                     <button class="add-btn ${isSelected ? 'selected' : ''}" 
-                            onclick="togglePlayerSelection(this, '${player}')" 
-                            data-player="${player}"
+                            onclick="togglePlayerSelection(this, '${player}')"
                             style="background-color: ${isSelected ? '#6c757d' : ''}"
-                    >Add</button>
+                            data-player="${player}">Add</button>
                     <button class="remove-btn" onclick="showRemoveConfirmation('${player}')">Remove</button>
                 </div>
             `;
@@ -336,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dateInput.min = today; // Restrict past dates
     dateInput.value = today;
     loadData();
-    displayAttendance();
+    initializeAttendanceListener();
 });
 
 // Export functions for testing
@@ -569,39 +562,48 @@ function displayAttendance() {
     const historyDiv = document.getElementById('attendanceHistory');
     historyDiv.innerHTML = '';
 
-    db.ref('attendance').on('value', (snapshot) => {
-        const attendanceData = [];
-        snapshot.forEach((dateSnapshot) => {
-            // Extract date from the key (remove "date: " prefix and quotes)
-            const date = dateSnapshot.key.replace('date: ', '').replace(/"/g, '');
-            const data = dateSnapshot.val();
-            attendanceData.push({
-                date: date,
-                players: data.players || []
-            });
-        });
-
-        // Sort by date (newest first)
-        attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        attendanceData.forEach(record => {
-            const row = document.createElement('tr');
-            const displayDate = new Date(record.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+    db.ref('attendance').once('value')
+        .then((snapshot) => {
+            const attendanceData = [];
+            snapshot.forEach((dateSnapshot) => {
+                const date = dateSnapshot.key.replace('date: ', '').replace(/"/g, '');
+                const data = dateSnapshot.val();
+                if (data && data.players) {
+                    attendanceData.push({
+                        date: date,
+                        players: data.players
+                    });
+                }
             });
 
-            row.innerHTML = `
-                <td>${displayDate}</td>
-                <td>${record.players.join(', ')}</td>
-                <td>
-                    <button class="delete-btn" onclick="deleteAttendance('${record.date}')">Delete</button>
-                </td>
-            `;
-            historyDiv.appendChild(row);
+            // Sort by date (newest first)
+            attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (attendanceData.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="3" class="text-center">No attendance records</td>';
+                historyDiv.appendChild(emptyRow);
+                return;
+            }
+
+            attendanceData.forEach(record => {
+                const row = document.createElement('tr');
+                const displayDate = new Date(record.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                row.innerHTML = `
+                    <td>${displayDate}</td>
+                    <td>${record.players.join(', ')}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteAttendance('${record.date}')">Delete</button>
+                    </td>
+                `;
+                historyDiv.appendChild(row);
+            });
         });
-    });
 }
 
 function deleteAttendance(date) {
@@ -625,4 +627,11 @@ function capitalizeWords(name) {
         .split(' ') // Split into words
         .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter of each word
         .join(' '); // Join back with spaces
+}
+
+// Separate function for attendance listener
+function initializeAttendanceListener() {
+    db.ref('attendance').on('value', (snapshot) => {
+        displayAttendance();
+    });
 } 
