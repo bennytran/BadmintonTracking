@@ -27,34 +27,33 @@ function loadData() {
 }
 
 function addPlayer() {
-    const playerInput = document.getElementById('playerName');
+    const playerInput = document.getElementById('playerNameInput');
     const name = playerInput.value.trim();
 
-    if (!name) {
-        alert('Please enter a player name');
-        return;
-    }
+    if (name) {
+        // Normalize the name before checking or adding
+        const normalizedName = capitalizeWords(name);
 
-    if (!validateName(name)) {
-        alert('Name can only contain letters, numbers, and spaces');
-        return;
-    }
+        // Check if name already exists (case-insensitive)
+        const nameExists = players.some(player =>
+            player.toLowerCase() === normalizedName.toLowerCase()
+        );
 
-    if (players.includes(name)) {
-        alert('Player already exists in the list');
-        return;
-    }
+        if (nameExists) {
+            alert('This player already exists!');
+            return;
+        }
 
-    db.ref('players').push(name)
-        .then(() => {
-            playerInput.value = '';
-            playerInput.focus();
-            showNotification('Player added successfully!');
-        })
-        .catch(error => {
-            console.error('Error adding player:', error);
-            alert('Error adding player');
-        });
+        // Add the normalized name
+        players.push(normalizedName);
+
+        // Sort players (case-insensitive)
+        players.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+
+        saveData();
+        displayPlayers();
+        playerInput.value = '';
+    }
 }
 
 function displayPlayers() {
@@ -204,45 +203,38 @@ function removePlayer(name) {
 
 function displayHistory() {
     const historyDiv = document.getElementById('attendanceHistory');
-    historyDiv.innerHTML = `
-        <table class="history-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Present Players</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    `;
+    historyDiv.innerHTML = ''; // Just clear the content, don't create new table
 
-    const tbody = historyDiv.querySelector('tbody');
+    db.ref('attendance').orderByKey().on('value', (snapshot) => {
+        const attendanceData = snapshot.val() || {};
 
-    // Sort by date in descending order and remove duplicates
-    const uniqueDates = {};
-    attendanceHistory.forEach(record => {
-        if (!uniqueDates[record.date]) {
-            uniqueDates[record.date] = record.players;
-        }
-    });
+        // Convert to array and sort by date (newest first)
+        const sortedAttendance = Object.entries(attendanceData)
+            .map(([key, value]) => ({
+                key,
+                date: value.date,
+                players: value.players
+            }))
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    Object.entries(uniqueDates)
-        .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA))
-        .forEach(([date, players]) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${formatDate(date)}</td>
-                <td>${players.join(', ')}</td>
+        sortedAttendance.forEach(record => {
+            const row = document.createElement('tr');
+            const date = new Date(record.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+
+            row.innerHTML = `
+                <td>${date}</td>
+                <td>${record.players.join(', ')}</td>
                 <td>
-                    <button class="delete-btn" onclick="deleteHistory('${date}')">
-                        Delete
-                    </button>
+                    <button class="delete-btn" onclick="deleteAttendance('${record.key}')">Delete</button>
                 </td>
             `;
-            tbody.appendChild(tr);
+            historyDiv.appendChild(row);
         });
+    });
 }
 
 function formatDate(dateString) {
@@ -272,19 +264,42 @@ function saveAttendance() {
         return;
     }
 
-    const selectedPlayers = getSelectedPlayers();
-    if (selectedPlayers.length === 0) {
+    if (selectedPlayers.size === 0) {
         alert('Please select at least one player');
         return;
     }
 
-    // Update Firebase
-    db.ref(`attendance/${date}`).set({
-        date: date,
-        players: selectedPlayers
-    });
+    // Format date to use as key
+    const formattedDate = date.replace(/-/g, '');
 
-    showNotification('Attendance saved successfully!');
+    // First, get existing data for this date
+    db.ref('attendance/' + formattedDate).once('value')
+        .then((snapshot) => {
+            let existingPlayers = [];
+            if (snapshot.exists()) {
+                existingPlayers = snapshot.val().players || [];
+            }
+
+            // Combine existing and new players, remove duplicates
+            const updatedPlayers = Array.from(new Set([
+                ...existingPlayers,
+                ...Array.from(selectedPlayers)
+            ])).sort();
+
+            // Update database with combined players
+            return db.ref('attendance/' + formattedDate).update({
+                date: date,
+                players: updatedPlayers
+            });
+        })
+        .then(() => {
+            alert('Attendance saved successfully!');
+            displayAttendance();
+        })
+        .catch((error) => {
+            console.error('Error saving attendance:', error);
+            alert('Error saving attendance');
+        });
 }
 
 function showNotification(message) {
@@ -495,25 +510,37 @@ function selectSearchItem(player) {
 }
 
 function performSearch() {
-    const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-    const letterSections = document.querySelectorAll('.letter-section');
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput.value.toLowerCase();
+    const dropdown = document.getElementById('searchDropdown');
 
-    letterSections.forEach(section => {
-        let hasVisiblePlayers = false;
-        const players = section.querySelectorAll('.player-item');
+    if (!searchTerm) {
+        dropdown.style.display = 'none';
+        return;
+    }
 
-        players.forEach(player => {
-            const playerName = player.querySelector('.player-name').textContent.toLowerCase();
-            if (playerName.includes(searchTerm)) {
-                player.style.display = '';
-                hasVisiblePlayers = true;
-            } else {
-                player.style.display = 'none';
-            }
-        });
+    const matches = players.filter(player =>
+        player.toLowerCase().includes(searchTerm)
+    );
 
-        section.style.display = hasVisiblePlayers ? '' : 'none';
-    });
+    if (matches.length > 0) {
+        dropdown.innerHTML = matches
+            .map((player, index) => {
+                const highlightedName = player.replace(
+                    new RegExp(searchTerm, 'gi'),
+                    match => `<strong>${match}</strong>`
+                );
+                return `
+                    <div class="dropdown-item ${index === selectedSearchItem ? 'selected' : ''}" 
+                         onclick="selectPlayer('${player}')">
+                        ${highlightedName}
+                    </div>`;
+            })
+            .join('');
+        dropdown.style.display = 'block';
+    } else {
+        dropdown.style.display = 'none';
+    }
 }
 
 // Add input validation for player name input
@@ -579,4 +606,14 @@ function deleteAttendance(key) {
                 });
         }
     }
+}
+
+// Function to capitalize first letter of each word
+function capitalizeWords(name) {
+    return name
+        .trim() // Remove leading/trailing spaces
+        .toLowerCase() // Convert all to lowercase first
+        .split(' ') // Split into words
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter of each word
+        .join(' '); // Join back with spaces
 } 
