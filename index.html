@@ -92,11 +92,11 @@
         </div>
     </div>
 
-    <!-- Firebase Scripts -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
-    <!-- Initialize Firebase -->
+    <!-- Initialize Firebase - ONLY HERE, not in script.js -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyDFZMXpozHQsA2YQrNkxCQFNBrIuPAWBLo",
@@ -114,6 +114,7 @@
         const db = firebase.database();
     </script>
 
+    <!-- Your main script -->
     <script src="script.js"></script>
 </body>
 

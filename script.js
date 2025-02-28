@@ -1,33 +1,28 @@
+// Start of script.js - remove any Firebase config from here
+// Just keep your application logic
+
+// Initialize global variables
 let players = [];
 let attendanceHistory = [];
 let searchTimeout;
 let selectedSearchItem = -1;
 let selectedPlayers = new Set();
 
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "your-api-key",
-    authDomain: "badmintontracking.firebaseapp.com",
-    databaseURL: "https://badmintontracking-default-rtdb.firebaseio.com",
-    projectId: "badmintontracking",
-    storageBucket: "badmintontracking.appspot.com",
-    messagingSenderId: "your-sender-id",
-    appId: "your-app-id"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// Add this at the start of your script.js to test the connection
-console.log("Testing Firebase connection...");
-db.ref().once('value')
-    .then(() => {
-        console.log("Successfully connected to Firebase!");
-    })
-    .catch((error) => {
-        console.error("Error connecting to Firebase:", error);
-    });
+// Initialize Firebase listeners when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Test connection
+    console.log("Testing Firebase connection...");
+    db.ref().once('value')
+        .then(() => {
+            console.log("Successfully connected to Firebase!");
+            // Initialize the rest of your app
+            loadData();
+            initializeAttendanceListener();
+        })
+        .catch((error) => {
+            console.error("Error connecting to Firebase:", error);
+        });
+});
 
 function loadData() {
     db.ref('players').on('value', (snapshot) => {
@@ -346,16 +341,6 @@ document.getElementById('playerNameInput').addEventListener('keypress', function
     if (e.key === 'Enter') {
         addPlayer();
     }
-});
-
-// Initialize when document is ready
-document.addEventListener('DOMContentLoaded', () => {
-    const dateInput = document.getElementById('attendanceDate');
-    const today = new Date().toISOString().split('T')[0];
-    dateInput.min = today; // Restrict past dates
-    dateInput.value = today;
-    loadData();
-    initializeAttendanceListener();
 });
 
 // Export functions for testing
