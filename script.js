@@ -2,6 +2,7 @@ let players = [];
 let attendanceHistory = [];
 let searchTimeout;
 let selectedSearchItem = -1;
+let selectedPlayers = new Set();
 
 function loadData() {
     // Listen for players changes
@@ -109,13 +110,19 @@ function displayPlayers() {
     });
 }
 
-function togglePlayerSelection(button, player) {
+function togglePlayerSelection(button, playerName) {
     button.classList.toggle('selected');
+    if (button.classList.contains('selected')) {
+        button.style.backgroundColor = '#6c757d'; // Grey when selected
+        selectedPlayers.add(playerName);
+    } else {
+        button.style.backgroundColor = ''; // Reset to default green
+        selectedPlayers.delete(playerName);
+    }
 }
 
 function getSelectedPlayers() {
-    return Array.from(document.querySelectorAll('.add-btn.selected'))
-        .map(btn => btn.getAttribute('data-player'));
+    return Array.from(selectedPlayers);
 }
 
 function toggleSelectAll() {
@@ -283,6 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dateInput.min = today; // Restrict past dates
     dateInput.value = today;
     loadData();
+    displayAttendance();
 });
 
 // Export functions for testing
@@ -497,4 +505,55 @@ document.getElementById('playerName').addEventListener('input', function (e) {
         input.style.borderColor = '';
         input.title = '';
     }
-}); 
+});
+
+function displayAttendance() {
+    const attendanceHistory = document.getElementById('attendanceHistory');
+    attendanceHistory.innerHTML = '';
+
+    db.ref('attendance').orderByKey().on('value', (snapshot) => {
+        const attendanceData = snapshot.val() || {};
+
+        // Convert to array and sort by date (newest first)
+        const sortedAttendance = Object.entries(attendanceData)
+            .map(([key, value]) => ({
+                key,
+                date: value.date,
+                players: value.players
+            }))
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        sortedAttendance.forEach(record => {
+            const row = document.createElement('tr');
+            const date = new Date(record.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+
+            row.innerHTML = `
+                <td>${date}</td>
+                <td>${record.players.join(', ')}</td>
+                <td>
+                    <button class="delete-btn" onclick="deleteAttendance('${record.key}')">Delete</button>
+                </td>
+            `;
+            attendanceHistory.appendChild(row);
+        });
+    });
+}
+
+function deleteAttendance(key) {
+    if (confirm('Are you sure you want to delete this attendance record?')) {
+        if (confirm('Please confirm again to delete this record.')) {
+            db.ref(`attendance/${key}`).remove()
+                .then(() => {
+                    showNotification('Record deleted successfully!');
+                })
+                .catch(error => {
+                    console.error('Error deleting record:', error);
+                    alert('Error deleting record');
+                });
+        }
+    }
+} 

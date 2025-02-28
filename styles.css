@@ -81,6 +81,16 @@ body {
 
 .add-btn {
     background-color: var(--accent-green);
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-btn.selected {
+    background-color: #6c757d;
 }
 
 .remove-btn {
@@ -112,9 +122,10 @@ body {
 }
 
 .history-table th {
-    background-color: #4a90e2;
-    color: white;
-    font-weight: 500;
+    background-color: #e3f2fd;
+    color: var(--text-primary);
+    padding: 12px;
+    text-align: left;
 }
 
 .history-table tr:hover {
@@ -206,8 +217,8 @@ input[type="date"] {
 }
 
 .letter-header {
-    background-color: var(--accent-blue);
-    color: white;
+    background-color: #e3f2fd;
+    color: var(--text-primary);
     padding: 10px 16px;
     font-weight: bold;
     position: sticky;
@@ -490,13 +501,6 @@ input[type="date"] {
 .history-table {
     width: 100%;
     border-collapse: collapse;
-}
-
-.history-table th {
-    background-color: var(--accent-blue);
-    color: white;
-    padding: 12px;
-    text-align: left;
 }
 
 .history-table td {
