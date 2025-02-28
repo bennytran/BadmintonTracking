@@ -8,6 +8,8 @@
     --accent-green: #28a745;
     --accent-red: #dc3545;
     --border-color: #dee2e6;
+    --container-padding: 20px;
+    --border-radius: 8px;
 }
 
 body {
@@ -19,12 +21,10 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
-    background-color: #e8eaed;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 0 var(--container-padding);
 }
 
 .add-player-section,
@@ -42,7 +42,9 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: clamp(8px, 2vw, 16px);
     border-bottom: 1px solid var(--border-color);
     background-color: white;
     position: relative;
@@ -146,11 +148,13 @@ h1 {
     color: #007bff;
     text-align: center;
     margin-bottom: 30px;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
 }
 
 h2 {
     color: #495057;
     margin-bottom: 20px;
+    font-size: clamp(1.2rem, 3vw, 2rem);
 }
 
 input[type="text"],
@@ -194,7 +198,7 @@ input[type="date"] {
 
 .button-group {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .player-list-container {
@@ -203,6 +207,9 @@ input[type="date"] {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     background: white;
+    display: grid;
+    gap: 15px;
+    width: 100%;
 }
 
 .player-list {
@@ -242,13 +249,16 @@ input[type="date"] {
 .search-wrapper {
     position: relative;
     display: flex;
-    align-items: center;
     gap: 8px;
+    width: 100%;
+    max-width: 600px;
 }
 
 .search-input {
-    flex-grow: 1;
-    padding: 10px 15px;
+    flex: 1;
+    min-width: 0;
+    padding: clamp(8px, 2vw, 15px);
+    font-size: clamp(14px, 2vw, 16px);
     border: 2px solid var(--border-color);
     border-radius: 6px;
     font-size: 14px;
@@ -438,21 +448,26 @@ input[type="date"] {
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: clamp(15px, 3vw, 25px);
 }
 
 .date-input-group {
     display: flex;
+    flex-wrap: wrap;
     gap: 15px;
-    align-items: center;
-    margin-top: 15px;
 }
 
 .date-input {
+    flex: 1;
+    min-width: 200px;
+    max-width: 100%;
     padding: 12px 15px;
     font-size: 16px;
     border: 2px solid var(--border-color);
     border-radius: 6px;
-    min-width: 200px;
 }
 
 .save-attendance-btn {
@@ -476,6 +491,7 @@ input[type="date"] {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
 }
 
 .history-header {
@@ -509,6 +525,7 @@ input[type="date"] {
 .history-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 600px;
 }
 
 .history-table td {
@@ -538,4 +555,127 @@ input[type="date"] {
     padding: 12px;
     text-align: left;
     color: var(--text-primary);
+}
+
+/* Responsive typography */
+html {
+    font-size: 16px;
+}
+
+/* Responsive grid for player list */
+.player-list-container {
+    display: grid;
+    gap: 15px;
+    width: 100%;
+}
+
+/* Media Queries */
+/* Mobile devices */
+@media screen and (max-width: 480px) {
+    :root {
+        --container-padding: 10px;
+    }
+
+    .list-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .search-container {
+        max-width: 100%;
+    }
+
+    .button-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .player-item {
+        padding: 10px;
+    }
+
+    .add-btn,
+    .remove-btn,
+    .control-btn {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+/* Tablets */
+@media screen and (min-width: 481px) and (max-width: 768px) {
+    .list-controls {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .search-container {
+        max-width: 100%;
+    }
+}
+
+/* Small laptops */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        max-width: 900px;
+    }
+}
+
+/* Landscape orientation for mobile */
+@media screen and (max-height: 480px) and (orientation: landscape) {
+    .player-list {
+        height: 200px;
+    }
+}
+
+/* High-DPI screens */
+@media screen and (-webkit-min-device-pixel-ratio: 2),
+screen and (min-resolution: 192dpi) {
+    html {
+        font-size: 14px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-primary: #1a1a1a;
+        --bg-white: #2d2d2d;
+        --text-primary: #ffffff;
+        --border-color: #404040;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+
+    .add-btn,
+    .remove-btn,
+    .control-btn {
+        padding: clamp(10px, 3vw, 16px);
+    }
+}
+
+/* Ensure minimum spacing on very small screens */
+@media screen and (max-width: 320px) {
+    .button-group {
+        gap: 5px;
+    }
+
+    .player-item {
+        padding: 8px;
+    }
+}
+
+/* Print styles */
+@media print {
+    .player-list {
+        height: auto;
+    }
+
+    .add-btn,
+    .remove-btn,
+    .control-btn {
+        display: none;
+    }
 }
