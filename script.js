@@ -48,17 +48,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Search input event listeners
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        // Handle input changes
+        // Handle input changes for dropdown
         searchInput.addEventListener('input', searchPlayers);
 
         // Handle enter key
         searchInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
+                e.preventDefault();
+                searchPlayers(); // Perform search
+
+                // If dropdown is visible and has items, select first item
                 const dropdown = document.getElementById('searchDropdown');
-                const firstItem = dropdown.querySelector('.dropdown-item');
-                if (firstItem) {
-                    const playerName = firstItem.textContent.trim();
-                    selectSearchItem(playerName);
+                if (dropdown.style.display === 'block') {
+                    const firstItem = dropdown.querySelector('.dropdown-item');
+                    if (firstItem) {
+                        const playerName = firstItem.textContent.trim();
+                        selectSearchItem(playerName);
+                    }
                 }
             }
         });
@@ -67,7 +73,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Search button click
     const searchButton = document.querySelector('.search-btn');
     if (searchButton) {
-        searchButton.addEventListener('click', searchPlayers);
+        searchButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            searchPlayers();
+        });
     }
 
     // Close dropdown when clicking outside
@@ -496,8 +505,31 @@ function validateName(name) {
 function searchPlayers() {
     const searchInput = document.getElementById('searchInput');
     const searchText = searchInput.value.toLowerCase();
-    const dropdown = document.getElementById('searchDropdown');
 
+    // Filter and display matching players in the main list
+    const allPlayerItems = document.querySelectorAll('.player-item');
+    let hasMatches = false;
+
+    allPlayerItems.forEach(item => {
+        const playerName = item.querySelector('.player-name').textContent.toLowerCase();
+        if (playerName.includes(searchText)) {
+            item.style.display = 'flex';
+            hasMatches = true;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    // Also show/hide letter headers based on visible players
+    const letterSections = document.querySelectorAll('.letter-section');
+    letterSections.forEach(section => {
+        const hasVisiblePlayers = Array.from(section.querySelectorAll('.player-item'))
+            .some(item => item.style.display !== 'none');
+        section.style.display = hasVisiblePlayers ? 'block' : 'none';
+    });
+
+    // Show dropdown suggestions
+    const dropdown = document.getElementById('searchDropdown');
     if (searchText.length > 0) {
         const matches = players.filter(player =>
             player.toLowerCase().includes(searchText)
@@ -513,6 +545,9 @@ function searchPlayers() {
 
         dropdown.style.display = matches.length > 0 ? 'block' : 'none';
     } else {
+        // If search is empty, show all players
+        allPlayerItems.forEach(item => item.style.display = 'flex');
+        letterSections.forEach(section => section.style.display = 'block');
         dropdown.style.display = 'none';
     }
 }
