@@ -60,11 +60,10 @@ function displayPlayers() {
     const playerList = document.getElementById('playerList');
     playerList.innerHTML = '';
 
-    // Sort players alphabetically
+    // Sort and group players
     const sortedPlayers = [...players].sort((a, b) => a.localeCompare(b));
-
-    // Group players by first letter
     const groupedPlayers = {};
+
     sortedPlayers.forEach(player => {
         const firstLetter = player.charAt(0).toUpperCase();
         if (!groupedPlayers[firstLetter]) {
@@ -73,7 +72,7 @@ function displayPlayers() {
         groupedPlayers[firstLetter].push(player);
     });
 
-    // Create sections for each letter
+    // Create sections
     Object.keys(groupedPlayers).sort().forEach(letter => {
         const letterSection = document.createElement('div');
         letterSection.className = 'letter-section';
@@ -97,6 +96,16 @@ function displayPlayers() {
         });
 
         playerList.appendChild(letterSection);
+    });
+
+    // Apply sticky behavior after rendering
+    const letterHeaders = document.querySelectorAll('.letter-header');
+    letterHeaders.forEach(header => {
+        const parent = header.parentElement;
+        parent.style.overflow = 'visible';
+        header.style.position = 'sticky';
+        header.style.top = '0';
+        header.style.zIndex = '10';
     });
 }
 
