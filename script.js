@@ -114,28 +114,16 @@ function displayPlayers() {
         header.style.zIndex = '10';
     });
 
-    // Update select all button text
-    const selectAllBtn = document.querySelector('.select-all-btn');
+    // Update select all button
+    updateSelectAllButton();
+}
+
+function updateSelectAllButton() {
     const allButtons = document.querySelectorAll('.add-btn');
+    const selectAllBtn = document.querySelector('.select-all-btn');
     const areAllSelected = Array.from(allButtons).every(btn => btn.classList.contains('selected'));
-    if (selectAllBtn) {
-        selectAllBtn.textContent = areAllSelected ? 'Deselect All' : 'Select All';
-    }
-}
 
-function togglePlayerSelection(button, playerName) {
-    button.classList.toggle('selected');
-    if (button.classList.contains('selected')) {
-        button.style.backgroundColor = '#6c757d'; // Grey when selected
-        selectedPlayers.add(playerName);
-    } else {
-        button.style.backgroundColor = ''; // Reset to default green
-        selectedPlayers.delete(playerName);
-    }
-}
-
-function getSelectedPlayers() {
-    return Array.from(selectedPlayers);
+    selectAllBtn.textContent = areAllSelected ? 'Deselect All' : 'Select All';
 }
 
 function toggleSelectAll() {
@@ -156,7 +144,24 @@ function toggleSelectAll() {
         }
     });
 
-    selectAllBtn.textContent = areAllSelected ? 'Deselect All' : 'Select All';
+    updateSelectAllButton();
+}
+
+function togglePlayerSelection(button, playerName) {
+    button.classList.toggle('selected');
+    if (button.classList.contains('selected')) {
+        button.style.backgroundColor = '#6c757d'; // Grey when selected
+        selectedPlayers.add(playerName);
+    } else {
+        button.style.backgroundColor = ''; // Reset to default green
+        selectedPlayers.delete(playerName);
+    }
+
+    updateSelectAllButton(); // Update select all button state
+}
+
+function getSelectedPlayers() {
+    return Array.from(selectedPlayers);
 }
 
 function showRemoveConfirmation(player) {
