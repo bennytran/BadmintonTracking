@@ -22,6 +22,28 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch((error) => {
             console.error("Error connecting to Firebase:", error);
         });
+
+    // Set today's date as default
+    const dateInput = document.getElementById('attendanceDate');
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.value = today;
+    dateInput.min = today; // Prevent selecting past dates
+
+    // Add event listener for player name input
+    const playerInput = document.getElementById('playerNameInput');
+    if (playerInput) {
+        playerInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                addPlayer();
+            }
+        });
+    }
+
+    // Add event listener for Add Player button
+    const addPlayerBtn = document.querySelector('.add-player-btn');
+    if (addPlayerBtn) {
+        addPlayerBtn.addEventListener('click', addPlayer);
+    }
 });
 
 function loadData() {
@@ -336,13 +358,6 @@ function showNotification(message) {
         notification.remove();
     }, 3000);
 }
-
-// Add event listener for the enter key
-document.getElementById('playerNameInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        addPlayer();
-    }
-});
 
 // Export functions for testing
 if (typeof module !== 'undefined' && module.exports) {
