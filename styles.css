@@ -43,7 +43,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 12px 16px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #eee;
     width: 100%;
     box-sizing: border-box;
 }
@@ -54,10 +54,10 @@ body {
 
 .player-name {
     flex: 1;
+    margin-right: 10px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-right: 10px;
 }
 
 .control-btn,
@@ -236,9 +236,9 @@ input[type="date"] {
     box-sizing: border-box;
 }
 
+/* Remove any hover effects */
 .player-item:hover {
-    background-color: var(--bg-secondary);
-    transform: translateX(4px);
+    background: none;
 }
 
 .search-container {

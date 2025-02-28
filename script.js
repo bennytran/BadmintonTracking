@@ -104,7 +104,7 @@ function addPlayer() {
     // Add to Firebase
     db.ref('players').push(normalizedName)
         .then(() => {
-            console.log('Player added successfully:', normalizedName);
+            alert(`${normalizedName} has been added successfully!`);
             playerInput.value = '';
             playerInput.focus();
         })
@@ -749,7 +749,7 @@ function addPlayer() {
     // Add to Firebase
     db.ref('players').push(normalizedName)
         .then(() => {
-            console.log('Player added successfully:', normalizedName);
+            alert(`${normalizedName} has been added successfully!`);
             playerInput.value = '';
             playerInput.focus();
         })
