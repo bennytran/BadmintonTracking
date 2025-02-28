@@ -24,19 +24,21 @@
                 <div class="search-container">
                     <div class="search-wrapper">
                         <input type="text" id="searchInput" placeholder="Search names..." class="search-input">
-                        <div id="searchDropdown" class="search-dropdown"></div>
                         <button class="search-button" onclick="performSearch()">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
+                    <div id="searchDropdown" class="search-dropdown"></div>
                 </div>
                 <div class="button-group">
                     <button class="control-btn select-all-btn" onclick="toggleSelectAll()">Select All</button>
                     <button class="control-btn remove-all-btn" onclick="showRemoveAllConfirmation()">Remove All</button>
                 </div>
             </div>
-            <div id="playerList" class="player-list">
-                <!-- Players will be added here dynamically -->
+            <div class="player-list-container">
+                <div id="playerList" class="player-list">
+                    <!-- Players will be added here dynamically -->
+                </div>
             </div>
         </div>
 

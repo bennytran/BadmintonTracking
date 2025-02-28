@@ -84,16 +84,16 @@ function displayPlayers() {
         letterSection.appendChild(letterHeader);
 
         groupedPlayers[letter].forEach(player => {
-            const div = document.createElement('div');
-            div.className = 'player-item';
-            div.innerHTML = `
+            const playerItem = document.createElement('div');
+            playerItem.className = 'player-item';
+            playerItem.innerHTML = `
                 <span class="player-name">${player}</span>
                 <div class="button-group">
                     <button class="add-btn" onclick="togglePlayerSelection(this, '${player}')" data-player="${player}">Add</button>
                     <button class="remove-btn" onclick="showRemoveConfirmation('${player}')">Remove</button>
                 </div>
             `;
-            letterSection.appendChild(div);
+            letterSection.appendChild(playerItem);
         });
 
         playerList.appendChild(letterSection);

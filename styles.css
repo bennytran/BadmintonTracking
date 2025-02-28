@@ -45,6 +45,8 @@ body {
     padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
     background-color: white;
+    position: relative;
+    z-index: 1;
 }
 
 .player-item:last-child {
@@ -183,12 +185,17 @@ input[type="date"] {
     gap: 10px;
 }
 
-.player-list {
+.player-list-container {
+    position: relative;
     height: 400px;
-    overflow-y: auto;
-    background-color: white;
-    border-radius: 8px;
     border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: white;
+}
+
+.player-list {
+    height: 100%;
+    overflow-y: auto;
     position: relative;
 }
 
@@ -203,8 +210,7 @@ input[type="date"] {
     font-weight: bold;
     position: sticky;
     top: 0;
-    z-index: 100;
-    margin: 0;
+    z-index: 10;
 }
 
 .player-item:hover {
