@@ -56,23 +56,45 @@ function addPlayer() {
 
 function displayPlayers() {
     const playerList = document.getElementById('playerList');
-    playerList.innerHTML = `
-        <div class="select-all-container">
-            <button class="select-all-btn" onclick="toggleSelectAll()">Select All</button>
-        </div>
-    `;
+    playerList.innerHTML = '';
 
-    players.forEach(player => {
-        const div = document.createElement('div');
-        div.className = 'player-item';
-        div.innerHTML = `
-            <span class="player-name">${player}</span>
-            <div class="button-group">
-                <button class="add-btn" onclick="togglePlayerSelection(this, '${player}')" data-player="${player}">Add</button>
-                <button class="remove-btn" onclick="showRemoveConfirmation('${player}')">Remove</button>
-            </div>
-        `;
-        playerList.appendChild(div);
+    // Sort players alphabetically
+    const sortedPlayers = [...players].sort((a, b) => a.localeCompare(b));
+
+    // Group players by first letter
+    const groupedPlayers = {};
+    sortedPlayers.forEach(player => {
+        const firstLetter = player.charAt(0).toUpperCase();
+        if (!groupedPlayers[firstLetter]) {
+            groupedPlayers[firstLetter] = [];
+        }
+        groupedPlayers[firstLetter].push(player);
+    });
+
+    // Create sections for each letter
+    Object.keys(groupedPlayers).sort().forEach(letter => {
+        const letterSection = document.createElement('div');
+        letterSection.className = 'letter-section';
+
+        const letterHeader = document.createElement('div');
+        letterHeader.className = 'letter-header';
+        letterHeader.textContent = letter;
+        letterSection.appendChild(letterHeader);
+
+        groupedPlayers[letter].forEach(player => {
+            const div = document.createElement('div');
+            div.className = 'player-item';
+            div.innerHTML = `
+                <span class="player-name">${player}</span>
+                <div class="button-group">
+                    <button class="add-btn" onclick="togglePlayerSelection(this, '${player}')" data-player="${player}">Add</button>
+                    <button class="remove-btn" onclick="showRemoveConfirmation('${player}')">Remove</button>
+                </div>
+            `;
+            letterSection.appendChild(div);
+        });
+
+        playerList.appendChild(letterSection);
     });
 }
 
