@@ -5,17 +5,21 @@ let selectedSearchItem = -1;
 let selectedPlayers = new Set();
 
 function loadData() {
-    db.ref('players').once('value')
+    return db.ref('players').once('value')
         .then((snapshot) => {
-            players = [];
+            players = []; // Clear existing array
             snapshot.forEach((childSnapshot) => {
-                players.push(childSnapshot.val());
+                const playerName = childSnapshot.val();
+                if (playerName) {
+                    players.push(playerName);
+                }
             });
             players.sort((a, b) => a.localeCompare(b));
             displayPlayers();
         })
         .catch((error) => {
             console.error('Error loading data:', error);
+            alert('Error loading player list');
         });
 
     // Listen for attendance changes
@@ -33,34 +37,49 @@ function addPlayer() {
     const playerInput = document.getElementById('playerNameInput');
     const name = playerInput.value.trim();
 
-    if (name) {
-        // Normalize the name before checking or adding
-        const normalizedName = name
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ');
-
-        // Check if name already exists (case-insensitive)
-        const nameExists = players.some(player =>
-            player.toLowerCase() === normalizedName.toLowerCase()
-        );
-
-        if (nameExists) {
-            alert('This player already exists!');
-            return;
-        }
-
-        // Add to Firebase players list
-        db.ref('players').push(normalizedName)
-            .then(() => {
-                playerInput.value = '';
-                loadData(); // Refresh the player list
-            })
-            .catch(error => {
-                console.error('Error adding player:', error);
-                alert('Error adding player');
-            });
+    if (!name) {
+        alert('Please enter a player name');
+        return;
     }
+
+    // Normalize the name before checking or adding
+    const normalizedName = name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+    // Check if name already exists (case-insensitive)
+    const nameExists = players.some(player =>
+        player.toLowerCase() === normalizedName.toLowerCase()
+    );
+
+    if (nameExists) {
+        alert('This player already exists!');
+        playerInput.value = '';
+        return;
+    }
+
+    // Add to players array first
+    players.push(normalizedName);
+    players.sort((a, b) => a.localeCompare(b));
+
+    // Then save to Firebase
+    const newPlayerRef = db.ref('players').push();
+    newPlayerRef.set(normalizedName)
+        .then(() => {
+            console.log('Player added successfully');
+            playerInput.value = '';
+            displayPlayers(); // Refresh the display
+        })
+        .catch(error => {
+            console.error('Error adding player:', error);
+            // Remove from local array if Firebase save fails
+            const index = players.indexOf(normalizedName);
+            if (index > -1) {
+                players.splice(index, 1);
+            }
+            alert('Error adding player');
+        });
 }
 
 function displayPlayers() {

@@ -42,14 +42,10 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: clamp(8px, 2vw, 16px);
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
-    background-color: var(--bg-white);
-    position: relative;
-    z-index: 1;
-    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .player-item:last-child {
@@ -57,8 +53,11 @@ body {
 }
 
 .player-name {
-    color: var(--text-primary);
-    font-size: 16px;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 10px;
 }
 
 .control-btn,
@@ -199,17 +198,17 @@ input[type="date"] {
 .button-group {
     display: flex;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .player-list-container {
     position: relative;
-    height: 400px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--bg-white);
-    display: grid;
-    gap: 15px;
     width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .player-list {
