@@ -47,6 +47,7 @@ body {
     background-color: white;
     position: relative;
     z-index: 1;
+    margin: 0;
 }
 
 .player-item:last-child {
@@ -191,16 +192,21 @@ input[type="date"] {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     background: white;
+    overflow: hidden;
 }
 
 .player-list {
     height: 100%;
     overflow-y: auto;
     position: relative;
+    padding: 0;
+    margin: 0;
 }
 
 .letter-section {
     position: relative;
+    margin: 0;
+    padding: 0;
 }
 
 .letter-header {
@@ -211,6 +217,9 @@ input[type="date"] {
     position: sticky;
     top: 0;
     z-index: 10;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .player-item:hover {
