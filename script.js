@@ -4,6 +4,31 @@ let searchTimeout;
 let selectedSearchItem = -1;
 let selectedPlayers = new Set();
 
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "your-api-key",
+    authDomain: "badmintontracking.firebaseapp.com",
+    databaseURL: "https://badmintontracking-default-rtdb.firebaseio.com",
+    projectId: "badmintontracking",
+    storageBucket: "badmintontracking.appspot.com",
+    messagingSenderId: "your-sender-id",
+    appId: "your-app-id"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Add this at the start of your script.js to test the connection
+console.log("Testing Firebase connection...");
+db.ref().once('value')
+    .then(() => {
+        console.log("Successfully connected to Firebase!");
+    })
+    .catch((error) => {
+        console.error("Error connecting to Firebase:", error);
+    });
+
 function loadData() {
     db.ref('players').on('value', (snapshot) => {
         players = [];
