@@ -1,5 +1,7 @@
 let players = [];
 let attendanceHistory = [];
+let searchTimeout;
+let selectedSearchItem = -1;
 
 function loadData() {
     // Listen for players changes
@@ -372,10 +374,88 @@ function validateName(name) {
 
 // Add search functionality
 document.getElementById('searchInput').addEventListener('input', function (e) {
+    clearTimeout(searchTimeout);
     const searchTerm = e.target.value.trim().toLowerCase();
 
-    // Get all player items
-    const playerItems = document.querySelectorAll('.player-item');
+    searchTimeout = setTimeout(() => {
+        if (validateName(searchTerm) || searchTerm === '') {
+            showSearchDropdown(searchTerm);
+        }
+    }, 300);
+});
+
+document.getElementById('searchInput').addEventListener('keydown', function (e) {
+    const dropdown = document.getElementById('searchDropdown');
+    const items = dropdown.getElementsByClassName('dropdown-item');
+
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const direction = e.key === 'ArrowDown' ? 1 : -1;
+        selectedSearchItem = (selectedSearchItem + direction + items.length) % items.length;
+
+        Array.from(items).forEach((item, index) => {
+            item.classList.toggle('selected', index === selectedSearchItem);
+        });
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (selectedSearchItem >= 0 && items[selectedSearchItem]) {
+            const selectedPlayer = items[selectedSearchItem].textContent;
+            selectSearchItem(selectedPlayer);
+        } else {
+            performSearch();
+        }
+    }
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.search-container')) {
+        document.getElementById('searchDropdown').style.display = 'none';
+    }
+});
+
+function showSearchDropdown(searchTerm) {
+    const dropdown = document.getElementById('searchDropdown');
+    if (!searchTerm) {
+        dropdown.style.display = 'none';
+        return;
+    }
+
+    const matches = players.filter(player =>
+        player.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (matches.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+    }
+
+    dropdown.innerHTML = matches
+        .map((player, index) => `
+            <div class="dropdown-item" 
+                 onclick="selectSearchItem('${player}')"
+                 data-index="${index}">
+                ${highlightMatch(player, searchTerm)}
+            </div>
+        `)
+        .join('');
+
+    dropdown.style.display = 'block';
+}
+
+function highlightMatch(text, searchTerm) {
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return text.replace(regex, '<strong>$1</strong>');
+}
+
+function selectSearchItem(player) {
+    document.getElementById('searchInput').value = player;
+    document.getElementById('searchDropdown').style.display = 'none';
+    performSearch();
+}
+
+function performSearch() {
+    const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
     const letterSections = document.querySelectorAll('.letter-section');
 
     letterSections.forEach(section => {
@@ -384,7 +464,7 @@ document.getElementById('searchInput').addEventListener('input', function (e) {
 
         players.forEach(player => {
             const playerName = player.querySelector('.player-name').textContent.toLowerCase();
-            if (validateName(searchTerm) && playerName.includes(searchTerm)) {
+            if (playerName.includes(searchTerm)) {
                 player.style.display = '';
                 hasVisiblePlayers = true;
             } else {
@@ -392,10 +472,9 @@ document.getElementById('searchInput').addEventListener('input', function (e) {
             }
         });
 
-        // Show/hide letter section based on whether it has visible players
         section.style.display = hasVisiblePlayers ? '' : 'none';
     });
-});
+}
 
 // Add input validation for player name input
 document.getElementById('playerName').addEventListener('input', function (e) {

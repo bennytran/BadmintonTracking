@@ -387,11 +387,18 @@ input[type="checkbox"] {
 .search-container {
     flex-grow: 1;
     max-width: 300px;
+    position: relative;
+}
+
+.search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .search-input {
     width: 100%;
-    padding: 8px 12px;
+    padding: 8px 35px 8px 12px;
     border: 2px solid #e0e0e0;
     border-radius: 4px;
     font-size: 14px;
@@ -403,6 +410,47 @@ input[type="checkbox"] {
     outline: none;
 }
 
-.search-input::placeholder {
-    color: #aaa;
+.search-button {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 8px 12px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+}
+
+.search-button:hover {
+    color: #4a90e2;
+}
+
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.dropdown-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f5f7fa;
+}
+
+.dropdown-item.selected {
+    background-color: #e8f0fe;
 }
