@@ -1,4 +1,4 @@
-/* Light theme with good contrast */
+/* Base styles and variables - removing dark mode */
 :root {
     --bg-primary: #F0F2F5;
     --bg-white: #FFFFFF;
@@ -46,7 +46,7 @@ body {
     gap: 10px;
     padding: clamp(8px, 2vw, 16px);
     border-bottom: 1px solid var(--border-color);
-    background-color: white;
+    background-color: var(--bg-white);
     position: relative;
     z-index: 1;
     margin: 0;
@@ -206,7 +206,7 @@ input[type="date"] {
     height: 400px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    background: white;
+    background: var(--bg-white);
     display: grid;
     gap: 15px;
     width: 100%;
@@ -468,6 +468,8 @@ input[type="date"] {
     font-size: 16px;
     border: 2px solid var(--border-color);
     border-radius: 6px;
+    background-color: var(--bg-white);
+    color: var(--text-primary);
 }
 
 .save-attendance-btn {
@@ -531,6 +533,8 @@ input[type="date"] {
 .history-table td {
     padding: 12px;
     border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-white);
+    color: var(--text-primary);
 }
 
 .delete-btn {
@@ -633,16 +637,6 @@ html {
 screen and (min-resolution: 192dpi) {
     html {
         font-size: 14px;
-    }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg-primary: #1a1a1a;
-        --bg-white: #2d2d2d;
-        --text-primary: #ffffff;
-        --border-color: #404040;
     }
 }
 
