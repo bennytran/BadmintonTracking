@@ -245,8 +245,10 @@ document.getElementById('playerName').addEventListener('keydown', function (e) {
 
 // Initialize when document is ready
 document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('attendanceDate');
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('attendanceDate').value = today;
+    dateInput.min = today; // Restrict past dates
+    dateInput.value = today;
     loadData();
 });
 
@@ -308,4 +310,34 @@ window.addEventListener('beforeunload', () => {
     // Remove Firebase listeners
     db.ref('players').off();
     db.ref('attendance').off();
-}); 
+});
+
+function showRemoveAllConfirmation() {
+    if (confirm('Are you sure you want to remove all players?')) {
+        if (confirm('Please confirm again to remove all players.')) {
+            db.ref('players').set({})
+                .then(() => {
+                    showNotification('All players removed successfully!');
+                })
+                .catch(error => {
+                    console.error('Error removing players:', error);
+                    alert('Error removing players');
+                });
+        }
+    }
+}
+
+function showDeleteAllHistoryConfirmation() {
+    if (confirm('Are you sure you want to delete all attendance history?')) {
+        if (confirm('Please confirm again to delete all history.')) {
+            db.ref('attendance').set({})
+                .then(() => {
+                    showNotification('All history deleted successfully!');
+                })
+                .catch(error => {
+                    console.error('Error deleting history:', error);
+                    alert('Error deleting history');
+                });
+        }
+    }
+} 

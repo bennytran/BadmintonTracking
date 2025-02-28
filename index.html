@@ -19,23 +19,31 @@
 
         <div class="name-list-section">
             <h2>Name List</h2>
+            <div class="list-controls">
+                <button class="control-btn select-all-btn" onclick="toggleSelectAll()">Select All</button>
+                <button class="control-btn remove-all-btn" onclick="showRemoveAllConfirmation()">Remove All</button>
+            </div>
             <div id="playerList" class="player-list">
-                <!-- Select All button and Players will be added here dynamically -->
+                <!-- Players will be added here dynamically -->
             </div>
         </div>
 
         <div class="attendance-section">
-            <h2>Today's Attendance</h2>
-            <div class="date-picker">
+            <h2>Date</h2>
+            <div class="date-container">
                 <input type="date" id="attendanceDate">
+                <button onclick="saveAttendance()" class="save-btn">Save Attendance</button>
             </div>
-            <button onclick="saveAttendance()" class="save-btn">Save Attendance</button>
         </div>
 
         <div class="history-section">
             <h2>Attendance History</h2>
+            <div class="history-controls">
+                <button class="control-btn delete-all-btn" onclick="showDeleteAllHistoryConfirmation()">Delete All
+                    History</button>
+            </div>
             <div id="attendanceHistory" class="history-container">
-                <!-- History table will be added here -->
+                <!-- History will be added here -->
             </div>
         </div>
     </div>
