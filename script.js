@@ -24,7 +24,6 @@ function loadData() {
 }
 
 function addPlayer() {
-    console.log('addPlayer function called'); // Debug log
     const playerInput = document.getElementById('playerName');
     const name = playerInput.value.trim();
 
@@ -33,17 +32,18 @@ function addPlayer() {
         return;
     }
 
-    console.log('Checking for duplicate:', name); // Debug log
+    if (!validateName(name)) {
+        alert('Name can only contain letters, numbers, and spaces');
+        return;
+    }
+
     if (players.includes(name)) {
         alert('Player already exists in the list');
         return;
     }
 
-    console.log('Adding player to Firebase:', name); // Debug log
-    // Add to Firebase with error handling
     db.ref('players').push(name)
         .then(() => {
-            console.log('Player added successfully'); // Debug log
             playerInput.value = '';
             playerInput.focus();
             showNotification('Player added successfully!');
@@ -362,4 +362,51 @@ function showDeleteAllHistoryConfirmation() {
                 });
         }
     }
-} 
+}
+
+function validateName(name) {
+    // Allow only letters, numbers, and spaces
+    const regex = /^[a-zA-Z0-9\s]+$/;
+    return regex.test(name);
+}
+
+// Add search functionality
+document.getElementById('searchInput').addEventListener('input', function (e) {
+    const searchTerm = e.target.value.trim().toLowerCase();
+
+    // Get all player items
+    const playerItems = document.querySelectorAll('.player-item');
+    const letterSections = document.querySelectorAll('.letter-section');
+
+    letterSections.forEach(section => {
+        let hasVisiblePlayers = false;
+        const players = section.querySelectorAll('.player-item');
+
+        players.forEach(player => {
+            const playerName = player.querySelector('.player-name').textContent.toLowerCase();
+            if (validateName(searchTerm) && playerName.includes(searchTerm)) {
+                player.style.display = '';
+                hasVisiblePlayers = true;
+            } else {
+                player.style.display = 'none';
+            }
+        });
+
+        // Show/hide letter section based on whether it has visible players
+        section.style.display = hasVisiblePlayers ? '' : 'none';
+    });
+});
+
+// Add input validation for player name input
+document.getElementById('playerName').addEventListener('input', function (e) {
+    const input = e.target;
+    const name = input.value;
+
+    if (name && !validateName(name)) {
+        input.style.borderColor = '#dc3545';
+        input.title = 'Name can only contain letters, numbers, and spaces';
+    } else {
+        input.style.borderColor = '';
+        input.title = '';
+    }
+}); 

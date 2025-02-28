@@ -18,11 +18,17 @@
         </div>
 
         <div class="name-list-section">
-            <h2>Name List1</h2>
-            <div class="list-controls">
-                <div class="button-group">
-                    <button class="control-btn select-all-btn" onclick="toggleSelectAll()">Select All</button>
-                    <button class="control-btn remove-all-btn" onclick="showRemoveAllConfirmation()">Remove All</button>
+            <div class="list-header">
+                <h2>Name List</h2>
+                <div class="list-controls">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search names..." class="search-input">
+                    </div>
+                    <div class="button-group">
+                        <button class="control-btn select-all-btn" onclick="toggleSelectAll()">Select All</button>
+                        <button class="control-btn remove-all-btn" onclick="showRemoveAllConfirmation()">Remove
+                            All</button>
+                    </div>
                 </div>
             </div>
             <div id="playerList" class="player-list">
