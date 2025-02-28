@@ -77,6 +77,7 @@ function addPlayer() {
     // Add to Firebase
     db.ref('players').push(normalizedName)
         .then(() => {
+            console.log('Player added successfully:', normalizedName);
             playerInput.value = '';
             playerInput.focus();
         })
@@ -576,8 +577,15 @@ function displayAttendance() {
     db.ref('attendance').once('value')
         .then((snapshot) => {
             const attendanceData = [];
+            const processedDates = new Set(); // Track processed dates
+
             snapshot.forEach((dateSnapshot) => {
                 const date = dateSnapshot.key.replace('date: ', '').replace(/"/g, '');
+
+                // Skip if we've already processed this date
+                if (processedDates.has(date)) return;
+                processedDates.add(date);
+
                 const data = dateSnapshot.val();
                 if (data && data.players) {
                     attendanceData.push({
@@ -645,4 +653,166 @@ function initializeAttendanceListener() {
     db.ref('attendance').on('value', (snapshot) => {
         displayAttendance();
     });
-} 
+}
+
+// Fix search functionality
+function searchPlayers() {
+    const searchInput = document.getElementById('searchInput');
+    const searchText = searchInput.value.toLowerCase();
+    const dropdown = document.getElementById('searchDropdown');
+
+    if (searchText.length > 0) {
+        const matches = players.filter(player =>
+            player.toLowerCase().includes(searchText)
+        );
+
+        dropdown.innerHTML = matches
+            .map(player => {
+                const highlightedName = player.replace(
+                    new RegExp(searchText, 'gi'),
+                    match => `<strong>${match}</strong>`
+                );
+                return `<div class="dropdown-item" 
+                         onclick="selectPlayer('${player}')">
+                        ${highlightedName}
+                    </div>`;
+            })
+            .join('');
+        dropdown.style.display = 'block';
+    } else {
+        dropdown.style.display = 'none';
+    }
+}
+
+// Fix player selection from dropdown
+function selectPlayer(player) {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = player;
+    document.getElementById('searchDropdown').style.display = 'none';
+
+    // Find and click the corresponding Add button
+    const addButtons = document.querySelectorAll('.add-btn');
+    addButtons.forEach(button => {
+        if (button.dataset.player === player) {
+            button.click();
+        }
+    });
+}
+
+// Fix add player functionality
+function addPlayer() {
+    const playerInput = document.getElementById('playerNameInput');
+    const name = playerInput.value.trim();
+
+    if (!name) {
+        alert('Please enter a player name');
+        return;
+    }
+
+    // Normalize the name
+    const normalizedName = name
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+    // Check for duplicates (case-insensitive)
+    const nameExists = players.some(player =>
+        player.toLowerCase() === normalizedName.toLowerCase()
+    );
+
+    if (nameExists) {
+        alert('This player already exists!');
+        playerInput.value = '';
+        return;
+    }
+
+    // Add to Firebase
+    db.ref('players').push(normalizedName)
+        .then(() => {
+            console.log('Player added successfully:', normalizedName);
+            playerInput.value = '';
+            playerInput.focus();
+        })
+        .catch(error => {
+            console.error('Error adding player:', error);
+            alert('Error adding player');
+        });
+}
+
+// Fix date handling in displayAttendance
+function displayAttendance() {
+    const historyDiv = document.getElementById('attendanceHistory');
+    historyDiv.innerHTML = '';
+
+    db.ref('attendance').once('value')
+        .then((snapshot) => {
+            const attendanceData = [];
+            const processedDates = new Set(); // Track processed dates
+
+            snapshot.forEach((dateSnapshot) => {
+                const date = dateSnapshot.key.replace('date: ', '').replace(/"/g, '');
+
+                // Skip if we've already processed this date
+                if (processedDates.has(date)) return;
+                processedDates.add(date);
+
+                const data = dateSnapshot.val();
+                if (data && data.players) {
+                    attendanceData.push({
+                        date: date,
+                        players: data.players
+                    });
+                }
+            });
+
+            // Sort by date (newest first)
+            attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (attendanceData.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="3" class="text-center">No attendance records</td>';
+                historyDiv.appendChild(emptyRow);
+                return;
+            }
+
+            attendanceData.forEach(record => {
+                const row = document.createElement('tr');
+                const displayDate = new Date(record.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                row.innerHTML = `
+                    <td>${displayDate}</td>
+                    <td>${record.players.join(', ')}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteAttendance('${record.date}')">Delete</button>
+                    </td>
+                `;
+                historyDiv.appendChild(row);
+            });
+        });
+}
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    // Add player input event listener
+    const playerInput = document.getElementById('playerNameInput');
+    playerInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addPlayer();
+        }
+    });
+
+    // Add search input event listener
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', searchPlayers);
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.matches('#searchInput')) {
+            document.getElementById('searchDropdown').style.display = 'none';
+        }
+    });
+}); 
