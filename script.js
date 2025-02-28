@@ -5,15 +5,18 @@ let selectedSearchItem = -1;
 let selectedPlayers = new Set();
 
 function loadData() {
-    // Listen for players changes
-    db.ref('players').on('value', (snapshot) => {
-        const data = snapshot.val();
-        players = data ? Object.values(data) : [];
-        displayPlayers();
-    }, (error) => {
-        console.error('Error loading players:', error);
-        alert('Error loading players');
-    });
+    db.ref('players').once('value')
+        .then((snapshot) => {
+            players = [];
+            snapshot.forEach((childSnapshot) => {
+                players.push(childSnapshot.val());
+            });
+            players.sort((a, b) => a.localeCompare(b));
+            displayPlayers();
+        })
+        .catch((error) => {
+            console.error('Error loading data:', error);
+        });
 
     // Listen for attendance changes
     db.ref('attendance').on('value', (snapshot) => {
@@ -32,7 +35,10 @@ function addPlayer() {
 
     if (name) {
         // Normalize the name before checking or adding
-        const normalizedName = capitalizeWords(name);
+        const normalizedName = name
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
 
         // Check if name already exists (case-insensitive)
         const nameExists = players.some(player =>
@@ -44,15 +50,16 @@ function addPlayer() {
             return;
         }
 
-        // Add the normalized name
-        players.push(normalizedName);
-
-        // Sort players (case-insensitive)
-        players.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-
-        saveData();
-        displayPlayers();
-        playerInput.value = '';
+        // Add to Firebase players list
+        db.ref('players').push(normalizedName)
+            .then(() => {
+                playerInput.value = '';
+                loadData(); // Refresh the player list
+            })
+            .catch(error => {
+                console.error('Error adding player:', error);
+                alert('Error adding player');
+            });
     }
 }
 
@@ -269,29 +276,17 @@ function saveAttendance() {
         return;
     }
 
-    // Format date to use as key
-    const formattedDate = date.replace(/-/g, '');
+    // Format date to use as key (YYYYMMDD)
+    const formattedDate = date.split('-').join('');
 
-    // First, get existing data for this date
-    db.ref('attendance/' + formattedDate).once('value')
-        .then((snapshot) => {
-            let existingPlayers = [];
-            if (snapshot.exists()) {
-                existingPlayers = snapshot.val().players || [];
-            }
+    // Convert selectedPlayers Set to sorted array
+    const selectedPlayersArray = Array.from(selectedPlayers).sort();
 
-            // Combine existing and new players, remove duplicates
-            const updatedPlayers = Array.from(new Set([
-                ...existingPlayers,
-                ...Array.from(selectedPlayers)
-            ])).sort();
-
-            // Update database with combined players
-            return db.ref('attendance/' + formattedDate).update({
-                date: date,
-                players: updatedPlayers
-            });
-        })
+    // Save to Firebase with the original format
+    db.ref('attendance/' + formattedDate).set({
+        date: date,
+        players: selectedPlayersArray
+    })
         .then(() => {
             alert('Attendance saved successfully!');
             displayAttendance();
