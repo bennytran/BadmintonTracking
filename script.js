@@ -52,20 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.addEventListener('input', searchPlayers);
 
         // Handle enter key
-        searchInput.addEventListener('keypress', function (e) {
+        searchInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                searchPlayers(); // Perform search
-
-                // If dropdown is visible and has items, select first item
-                const dropdown = document.getElementById('searchDropdown');
-                if (dropdown.style.display === 'block') {
-                    const firstItem = dropdown.querySelector('.dropdown-item');
-                    if (firstItem) {
-                        const playerName = firstItem.textContent.trim();
-                        selectSearchItem(playerName);
-                    }
-                }
+                performSearch();
             }
         });
     }
@@ -75,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchButton) {
         searchButton.addEventListener('click', (e) => {
             e.preventDefault();
-            searchPlayers();
+            performSearch();
         });
     }
 
@@ -159,6 +149,16 @@ function displayPlayers() {
     const playerList = document.getElementById('playerList');
     playerList.innerHTML = '';
 
+    // Add no results message div if it doesn't exist
+    if (!document.getElementById('noSearchResults')) {
+        const noResults = document.createElement('div');
+        noResults.id = 'noSearchResults';
+        noResults.style.display = 'none';
+        noResults.style.padding = '10px';
+        noResults.textContent = 'No players found';
+        playerList.appendChild(noResults);
+    }
+
     // Group players by first letter
     const groupedPlayers = {};
     players.forEach(player => {
@@ -169,7 +169,6 @@ function displayPlayers() {
         groupedPlayers[firstLetter].push(player);
     });
 
-    // Display players by group
     Object.keys(groupedPlayers).sort().forEach(letter => {
         const letterSection = document.createElement('div');
         letterSection.className = 'letter-section';
@@ -182,6 +181,7 @@ function displayPlayers() {
         groupedPlayers[letter].forEach(player => {
             const playerItem = document.createElement('div');
             playerItem.className = 'player-item';
+            playerItem.setAttribute('data-player', player);
             const isSelected = selectedPlayers.has(player);
 
             playerItem.innerHTML = `
@@ -502,54 +502,42 @@ function validateName(name) {
 }
 
 // Search functionality
-function searchPlayers() {
+function performSearch() {
     const searchInput = document.getElementById('searchInput');
     const searchText = searchInput.value.toLowerCase();
 
-    // Filter and display matching players in the main list
-    const allPlayerItems = document.querySelectorAll('.player-item');
-    let hasMatches = false;
+    // Hide all sections first
+    document.querySelectorAll('.letter-section').forEach(section => {
+        section.style.display = 'none';
+    });
 
-    allPlayerItems.forEach(item => {
-        const playerName = item.querySelector('.player-name').textContent.toLowerCase();
-        if (playerName.includes(searchText)) {
-            item.style.display = 'flex';
-            hasMatches = true;
+    // Show only matching players and their sections
+    let foundMatch = false;
+    players.forEach(player => {
+        const playerElement = document.querySelector(`.player-item[data-player="${player}"]`);
+        if (!playerElement) return;
+
+        if (player.toLowerCase().includes(searchText)) {
+            foundMatch = true;
+            playerElement.style.display = 'flex';
+            // Show the parent letter section
+            const letterSection = playerElement.closest('.letter-section');
+            if (letterSection) {
+                letterSection.style.display = 'block';
+            }
         } else {
-            item.style.display = 'none';
+            playerElement.style.display = 'none';
         }
     });
 
-    // Also show/hide letter headers based on visible players
-    const letterSections = document.querySelectorAll('.letter-section');
-    letterSections.forEach(section => {
-        const hasVisiblePlayers = Array.from(section.querySelectorAll('.player-item'))
-            .some(item => item.style.display !== 'none');
-        section.style.display = hasVisiblePlayers ? 'block' : 'none';
-    });
-
-    // Show dropdown suggestions
-    const dropdown = document.getElementById('searchDropdown');
-    if (searchText.length > 0) {
-        const matches = players.filter(player =>
-            player.toLowerCase().includes(searchText)
-        );
-
-        dropdown.innerHTML = matches
-            .map(player => `
-                <div class="dropdown-item" onclick="selectSearchItem('${player}')">
-                    ${highlightMatch(player, searchText)}
-                </div>
-            `)
-            .join('');
-
-        dropdown.style.display = matches.length > 0 ? 'block' : 'none';
-    } else {
-        // If search is empty, show all players
-        allPlayerItems.forEach(item => item.style.display = 'flex');
-        letterSections.forEach(section => section.style.display = 'block');
-        dropdown.style.display = 'none';
+    // If no matches found, show a message
+    const noResultsMsg = document.getElementById('noSearchResults');
+    if (noResultsMsg) {
+        noResultsMsg.style.display = foundMatch ? 'none' : 'block';
     }
+
+    // Hide dropdown after search
+    document.getElementById('searchDropdown').style.display = 'none';
 }
 
 // Highlight matching text
