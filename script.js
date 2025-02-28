@@ -44,6 +44,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (addPlayerBtn) {
         addPlayerBtn.addEventListener('click', addPlayer);
     }
+
+    // Search input event listeners
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        // Handle input changes
+        searchInput.addEventListener('input', searchPlayers);
+
+        // Handle enter key
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const dropdown = document.getElementById('searchDropdown');
+                const firstItem = dropdown.querySelector('.dropdown-item');
+                if (firstItem) {
+                    const playerName = firstItem.textContent.trim();
+                    selectSearchItem(playerName);
+                }
+            }
+        });
+    }
+
+    // Search button click
+    const searchButton = document.querySelector('.search-btn');
+    if (searchButton) {
+        searchButton.addEventListener('click', searchPlayers);
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.search-container')) {
+            document.getElementById('searchDropdown').style.display = 'none';
+        }
+    });
 });
 
 function loadData() {
@@ -460,119 +492,47 @@ function validateName(name) {
     return regex.test(name);
 }
 
-// Add search functionality
-document.getElementById('searchInput').addEventListener('input', function (e) {
-    clearTimeout(searchTimeout);
-    const searchTerm = e.target.value.trim().toLowerCase();
-
-    searchTimeout = setTimeout(() => {
-        if (validateName(searchTerm) || searchTerm === '') {
-            showSearchDropdown(searchTerm);
-        }
-    }, 300);
-});
-
-document.getElementById('searchInput').addEventListener('keydown', function (e) {
+// Search functionality
+function searchPlayers() {
+    const searchInput = document.getElementById('searchInput');
+    const searchText = searchInput.value.toLowerCase();
     const dropdown = document.getElementById('searchDropdown');
-    const items = dropdown.getElementsByClassName('dropdown-item');
 
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        const direction = e.key === 'ArrowDown' ? 1 : -1;
-        selectedSearchItem = (selectedSearchItem + direction + items.length) % items.length;
+    if (searchText.length > 0) {
+        const matches = players.filter(player =>
+            player.toLowerCase().includes(searchText)
+        );
 
-        Array.from(items).forEach((item, index) => {
-            item.classList.toggle('selected', index === selectedSearchItem);
-        });
-    } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (selectedSearchItem >= 0 && items[selectedSearchItem]) {
-            const selectedPlayer = items[selectedSearchItem].textContent;
-            selectSearchItem(selectedPlayer);
-        } else {
-            performSearch();
-        }
-    }
-});
+        dropdown.innerHTML = matches
+            .map(player => `
+                <div class="dropdown-item" onclick="selectSearchItem('${player}')">
+                    ${highlightMatch(player, searchText)}
+                </div>
+            `)
+            .join('');
 
-// Close dropdown when clicking outside
-document.addEventListener('click', function (e) {
-    if (!e.target.closest('.search-container')) {
-        document.getElementById('searchDropdown').style.display = 'none';
-    }
-});
-
-function showSearchDropdown(searchTerm) {
-    const dropdown = document.getElementById('searchDropdown');
-    if (!searchTerm) {
+        dropdown.style.display = matches.length > 0 ? 'block' : 'none';
+    } else {
         dropdown.style.display = 'none';
-        return;
     }
-
-    const matches = players.filter(player =>
-        player.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    if (matches.length === 0) {
-        dropdown.style.display = 'none';
-        return;
-    }
-
-    dropdown.innerHTML = matches
-        .map((player, index) => `
-            <div class="dropdown-item" 
-                 onclick="selectSearchItem('${player}')"
-                 data-index="${index}">
-                ${highlightMatch(player, searchTerm)}
-            </div>
-        `)
-        .join('');
-
-    dropdown.style.display = 'block';
 }
 
+// Highlight matching text
 function highlightMatch(text, searchTerm) {
     const regex = new RegExp(`(${searchTerm})`, 'gi');
     return text.replace(regex, '<strong>$1</strong>');
 }
 
+// Handle search item selection
 function selectSearchItem(player) {
-    document.getElementById('searchInput').value = player;
-    document.getElementById('searchDropdown').style.display = 'none';
-    performSearch();
-}
-
-function performSearch() {
     const searchInput = document.getElementById('searchInput');
-    const searchTerm = searchInput.value.toLowerCase();
-    const dropdown = document.getElementById('searchDropdown');
+    searchInput.value = player;
+    document.getElementById('searchDropdown').style.display = 'none';
 
-    if (!searchTerm) {
-        dropdown.style.display = 'none';
-        return;
-    }
-
-    const matches = players.filter(player =>
-        player.toLowerCase().includes(searchTerm)
-    );
-
-    if (matches.length > 0) {
-        dropdown.innerHTML = matches
-            .map((player, index) => {
-                const highlightedName = player.replace(
-                    new RegExp(searchTerm, 'gi'),
-                    match => `<strong>${match}</strong>`
-                );
-                return `
-                    <div class="dropdown-item ${index === selectedSearchItem ? 'selected' : ''}" 
-                         onclick="selectPlayer('${player}')">
-                        ${highlightedName}
-                    </div>`;
-            })
-            .join('');
-        dropdown.style.display = 'block';
-    } else {
-        dropdown.style.display = 'none';
+    // Find and click the add button for this player
+    const addBtn = document.querySelector(`.add-btn[data-player="${player}"]`);
+    if (addBtn && !addBtn.classList.contains('selected')) {
+        togglePlayerSelection(addBtn, player);
     }
 }
 
@@ -687,12 +647,13 @@ function searchPlayers() {
         );
 
         dropdown.innerHTML = matches
-            .map(player => {
+            .map((player, index) => {
                 const highlightedName = player.replace(
                     new RegExp(searchText, 'gi'),
                     match => `<strong>${match}</strong>`
                 );
-                return `<div class="dropdown-item" 
+                return `
+                    <div class="dropdown-item ${index === selectedSearchItem ? 'selected' : ''}" 
                          onclick="selectPlayer('${player}')">
                         ${highlightedName}
                     </div>`;
@@ -814,25 +775,3 @@ function displayAttendance() {
             });
         });
 }
-
-// Add event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    // Add player input event listener
-    const playerInput = document.getElementById('playerNameInput');
-    playerInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            addPlayer();
-        }
-    });
-
-    // Add search input event listener
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', searchPlayers);
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.matches('#searchInput')) {
-            document.getElementById('searchDropdown').style.display = 'none';
-        }
-    });
-}); 
