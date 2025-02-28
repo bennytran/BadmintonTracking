@@ -43,8 +43,12 @@ function addPlayer() {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
-    // Check for duplicates
-    if (players.includes(normalizedName)) {
+    // Check for duplicates (case-insensitive)
+    const nameExists = players.some(player =>
+        player.toLowerCase() === normalizedName.toLowerCase()
+    );
+
+    if (nameExists) {
         alert('This player already exists!');
         playerInput.value = '';
         return;
@@ -53,10 +57,8 @@ function addPlayer() {
     // Add to Firebase
     db.ref('players').push(normalizedName)
         .then(() => {
-            players.push(normalizedName);
-            players.sort((a, b) => a.localeCompare(b));
-            displayPlayers();
             playerInput.value = '';
+            playerInput.focus();
         })
         .catch(error => {
             console.error('Error adding player:', error);
@@ -124,11 +126,12 @@ function displayPlayers() {
 }
 
 function updateSelectAllButton() {
-    const allButtons = document.querySelectorAll('.add-btn');
     const selectAllBtn = document.querySelector('.select-all-btn');
-    const areAllSelected = Array.from(allButtons).every(btn => btn.classList.contains('selected'));
-
-    selectAllBtn.textContent = areAllSelected ? 'Deselect All' : 'Select All';
+    if (selectAllBtn) {
+        const allButtons = document.querySelectorAll('.add-btn');
+        const areAllSelected = Array.from(allButtons).every(btn => btn.classList.contains('selected'));
+        selectAllBtn.textContent = areAllSelected ? 'Deselect All' : 'Select All';
+    }
 }
 
 function toggleSelectAll() {
@@ -153,16 +156,15 @@ function toggleSelectAll() {
 }
 
 function togglePlayerSelection(button, playerName) {
-    button.classList.toggle('selected');
-    if (button.classList.contains('selected')) {
-        button.style.backgroundColor = '#6c757d'; // Grey when selected
+    const isSelected = button.classList.toggle('selected');
+    if (isSelected) {
+        button.style.backgroundColor = '#6c757d';
         selectedPlayers.add(playerName);
     } else {
-        button.style.backgroundColor = ''; // Reset to default green
+        button.style.backgroundColor = '';
         selectedPlayers.delete(playerName);
     }
-
-    updateSelectAllButton(); // Update select all button state
+    updateSelectAllButton();
 }
 
 function getSelectedPlayers() {
@@ -296,7 +298,6 @@ function saveAttendance() {
         })
         .then(() => {
             alert('Attendance saved successfully!');
-            displayAttendance();
         })
         .catch((error) => {
             console.error('Error saving attendance:', error);
