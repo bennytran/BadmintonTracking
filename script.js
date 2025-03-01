@@ -407,6 +407,7 @@ function deleteAttendance(dateKey) {
             .then(() => {
                 debugLog("Successfully deleted attendance for:", cleanDateKey);
                 alert('Attendance record deleted successfully!');
+                // The listener will automatically trigger displayHistory
             })
             .catch((error) => {
                 console.error('Error deleting attendance:', error);
@@ -710,18 +711,6 @@ function displayAttendance() {
         });
 }
 
-function deleteAttendance(date) {
-    if (confirm('Are you sure you want to delete this attendance record?')) {
-        db.ref(`attendance/date: "${date}"`).remove()
-            .then(() => {
-                displayAttendance();
-            })
-            .catch((error) => {
-                console.error('Error deleting attendance:', error);
-                alert('Error deleting attendance');
-            });
-    }
-}
 
 // Function to capitalize first letter of each word
 function capitalizeWords(name) {
@@ -778,45 +767,6 @@ function selectPlayer(player) {
     });
 }
 
-// Fix add player functionality
-function addPlayer() {
-    const playerInput = document.getElementById('playerNameInput');
-    const name = playerInput.value.trim();
-
-    if (!name) {
-        alert('Please enter a player name');
-        return;
-    }
-
-    // Normalize the name
-    const normalizedName = name
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
-
-    // Check for duplicates (case-insensitive)
-    const nameExists = players.some(player =>
-        player.toLowerCase() === normalizedName.toLowerCase()
-    );
-
-    if (nameExists) {
-        alert('This player already exists!');
-        playerInput.value = '';
-        return;
-    }
-
-    // Add to Firebase
-    db.ref('players').push(normalizedName)
-        .then(() => {
-            alert(`${normalizedName} has been added successfully!`);
-            playerInput.value = '';
-            playerInput.focus();
-        })
-        .catch(error => {
-            console.error('Error adding player:', error);
-            alert('Error adding player');
-        });
-}
 
 // Fix date handling in displayAttendance
 function displayAttendance() {
