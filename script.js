@@ -396,18 +396,20 @@ function saveAttendance() {
     }
 
     const dateKey = date.split('T')[0];
+    let shouldSave = true;
 
-    // First check if there's an existing record for this date
+    // Check for existing record first
     db.ref(`attendance/${dateKey}`).once('value')
         .then((snapshot) => {
             if (snapshot.exists()) {
-                return confirm('Attendance record already exists for this date. Do you want to update it?');
+                shouldSave = confirm('Attendance record already exists for this date. Do you want to update it?');
             }
-            return true;
-        })
-        .then((shouldSave) => {
-            if (!shouldSave) return;
 
+            if (!shouldSave) {
+                return Promise.reject('Update cancelled by user');
+            }
+
+            // Only proceed with save if user confirmed or it's a new record
             const attendanceRecord = {
                 date: dateKey,
                 players: Array.from(selectedPlayers).sort()
@@ -416,11 +418,13 @@ function saveAttendance() {
             return db.ref(`attendance/${dateKey}`).set(attendanceRecord);
         })
         .then(() => {
-            if (!shouldSave) return;
             alert('Attendance saved successfully!');
             displayHistory(); // Refresh the display
         })
         .catch((error) => {
+            if (error === 'Update cancelled by user') {
+                return; // Silent return for user cancellation
+            }
             console.error('Error saving attendance:', error);
             alert('Error saving attendance');
         });
