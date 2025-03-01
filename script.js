@@ -300,62 +300,91 @@ function removePlayer(name) {
 
 function displayHistory() {
     const historyDiv = document.getElementById('attendanceHistory');
-    historyDiv.innerHTML = ''; // Just clear the content, don't create new table
+    if (!historyDiv) return;
 
-    db.ref('attendance').orderByKey().on('value', (snapshot) => {
-        const attendanceData = snapshot.val() || {};
+    // Clear existing content but keep the header row
+    const headerRow = historyDiv.querySelector('tr');
+    historyDiv.innerHTML = '';
+    if (headerRow) historyDiv.appendChild(headerRow);
 
-        // Convert to array and sort by date (newest first)
-        const sortedAttendance = Object.entries(attendanceData)
-            .map(([key, value]) => ({
-                key,
-                date: value.date,
-                players: value.players
-            }))
-            .sort((a, b) => new Date(b.date) - new Date(a.date));
+    db.ref('attendance').orderByKey().once('value')
+        .then((snapshot) => {
+            const attendanceData = [];
 
-        sortedAttendance.forEach(record => {
-            const row = document.createElement('tr');
-            const date = new Date(record.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+            snapshot.forEach((dateSnapshot) => {
+                const data = dateSnapshot.val();
+                if (data && data.date && data.players) {
+                    attendanceData.push({
+                        key: dateSnapshot.key,
+                        date: data.date,
+                        players: data.players
+                    });
+                }
             });
 
-            row.innerHTML = `
-                <td>${date}</td>
-                <td>${record.players.join(', ')}</td>
-                <td>
-                    <button class="delete-btn" onclick="deleteAttendance('${record.key}')">Delete</button>
-                </td>
-            `;
-            historyDiv.appendChild(row);
+            // Sort by date (newest first)
+            attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Display each record
+            attendanceData.forEach(record => {
+                const row = document.createElement('tr');
+                const formattedDate = formatDate(record.date);
+
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${record.players.join(', ')}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteAttendance('${record.key}')">Delete</button>
+                    </td>
+                `;
+                historyDiv.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading attendance:', error);
+            alert('Error loading attendance history');
         });
-    });
 }
 
 function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            return 'Invalid Date';
+        }
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (e) {
+        console.error('Error formatting date:', e);
+        return 'Invalid Date';
+    }
 }
 
-function deleteHistory(date) {
+function deleteAttendance(dateKey) {
     if (confirm('Are you sure you want to delete this attendance record?')) {
-        if (confirm('Please confirm again to delete this record.')) {
-            db.ref(`attendance/${date}`).remove()
-                .then(() => {
-                    showNotification('Record deleted successfully!');
-                })
-                .catch(error => {
-                    console.error('Error deleting record:', error);
-                    alert('Error deleting record');
-                });
-        }
+        db.ref(`attendance/${dateKey}`).remove()
+            .then(() => {
+                alert('Record deleted successfully');
+                displayHistory(); // Refresh the display
+            })
+            .catch(error => {
+                console.error('Error deleting record:', error);
+                alert('Error deleting record');
+            });
     }
 }
 
 function saveAttendance() {
-    const date = document.getElementById('attendanceDate').value;
+    const dateInput = document.getElementById('attendanceDate');
+    if (!dateInput) {
+        console.error('Date input not found');
+        return;
+    }
+
+    const date = dateInput.value;
     if (!date) {
         alert('Please select a date');
         return;
@@ -366,25 +395,17 @@ function saveAttendance() {
         return;
     }
 
-    // First get existing players for this date
-    db.ref(`attendance/date: "${date}"/players`).once('value')
-        .then((snapshot) => {
-            let existingPlayers = [];
-            if (snapshot.exists()) {
-                existingPlayers = snapshot.val() || [];
-            }
+    // Create a clean key from the date (YYYY-MM-DD format)
+    const dateKey = date.split('T')[0]; // Handle both date and datetime strings
 
-            // Combine existing and new players, remove duplicates
-            const updatedPlayers = Array.from(new Set([
-                ...existingPlayers,
-                ...Array.from(selectedPlayers)
-            ])).sort();
+    // Create attendance record with proper structure
+    const attendanceRecord = {
+        date: dateKey,
+        players: Array.from(selectedPlayers).sort()
+    };
 
-            // Save with the exact structure requested
-            return db.ref(`attendance/date: "${date}"`).set({
-                players: updatedPlayers
-            });
-        })
+    // Save to Firebase using clean date as key
+    db.ref(`attendance/${dateKey}`).set(attendanceRecord)
         .then(() => {
             alert('Attendance saved successfully!');
         })
