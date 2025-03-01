@@ -222,15 +222,13 @@ function displayPlayers() {
 
 // Delete functions
 function deleteAttendance(dateKey) {
-    debugLog("Deleting attendance for date:", dateKey);
+    debugLog("Attempting to delete attendance for date:", dateKey);
 
     if (confirm('Are you sure you want to delete this attendance record?')) {
-        const cleanDateKey = dateKey.replace('date: ', '').replace(/"/g, '');
-        debugLog("Clean date key for deletion:", cleanDateKey);
-
-        db.ref(`attendance/${cleanDateKey}`).remove()
+        // No need to clean the dateKey - it's already in the correct format from Firebase
+        db.ref('attendance').child(dateKey).remove()
             .then(() => {
-                debugLog("Successfully deleted attendance for:", cleanDateKey);
+                debugLog("Successfully deleted attendance for:", dateKey);
                 alert('Attendance record deleted successfully!');
             })
             .catch((error) => {
