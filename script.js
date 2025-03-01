@@ -111,16 +111,14 @@ function loadData() {
 // Modify the display function to be debounced
 const debouncedDisplayHistory = debounce(() => {
     debugLog("displayHistory called (debounced)");
-    const historyDiv = document.getElementById('attendanceHistory');
-    if (!historyDiv) {
-        debugLog("History div not found!");
+    const historyBody = document.getElementById('attendanceHistory');
+    if (!historyBody) {
+        debugLog("History tbody not found!");
         return;
     }
 
-    // Clear existing content but keep the header row
-    const headerRow = historyDiv.querySelector('tr');
-    historyDiv.innerHTML = '';
-    if (headerRow) historyDiv.appendChild(headerRow);
+    // Properly clear the tbody
+    historyBody.innerHTML = '';
 
     db.ref('attendance').orderByKey().once('value')
         .then((snapshot) => {
@@ -156,7 +154,7 @@ const debouncedDisplayHistory = debounce(() => {
                         <button class="delete-btn" onclick="deleteAttendance('${record.key}')">Delete</button>
                     </td>
                 `;
-                historyDiv.appendChild(row);
+                historyBody.appendChild(row);
             });
         })
         .catch(error => {
