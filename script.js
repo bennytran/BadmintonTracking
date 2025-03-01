@@ -194,9 +194,14 @@ function displayPlayers() {
 
     playerList.innerHTML = '';
     players.sort().forEach(player => {
+        const div = document.createElement('div');
+        div.className = 'player-item';
+
+        const label = document.createElement('label');
+        label.className = 'checkbox-container';
+
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.id = `player-${player}`;
         checkbox.value = player;
         checkbox.checked = selectedPlayers.has(player);
         checkbox.onchange = () => {
@@ -207,15 +212,12 @@ function displayPlayers() {
             }
         };
 
-        const label = document.createElement('label');
-        label.htmlFor = `player-${player}`;
-        label.textContent = player;
+        const span = document.createElement('span');
+        span.textContent = player;
 
-        const div = document.createElement('div');
-        div.className = 'player-item';
-        div.appendChild(checkbox);
+        label.appendChild(checkbox);
+        label.appendChild(span);
         div.appendChild(label);
-
         playerList.appendChild(div);
     });
 }
@@ -287,3 +289,20 @@ document.addEventListener('DOMContentLoaded', () => {
         loadData();
     }
 });
+
+// Also add these helper functions that might have been removed during cleanup
+function selectAllPlayers() {
+    const checkboxes = document.querySelectorAll('#playerList input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+        selectedPlayers.add(checkbox.value);
+    });
+}
+
+function removeAllSelections() {
+    const checkboxes = document.querySelectorAll('#playerList input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+        selectedPlayers.delete(checkbox.value);
+    });
+}
