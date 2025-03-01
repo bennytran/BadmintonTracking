@@ -117,20 +117,18 @@ const debouncedDisplayHistory = debounce(() => {
         return;
     }
 
-    // Properly clear the tbody
     historyBody.innerHTML = '';
 
     db.ref('attendance').orderByKey().once('value')
         .then((snapshot) => {
             const attendanceData = [];
             const rawData = snapshot.val();
-            debugLog("Raw Firebase data:", rawData);
 
             if (rawData) {
-                Object.entries(rawData).forEach(([key, data]) => {
+                Object.entries(rawData).forEach(([dateKey, data]) => {
                     if (data && data.date && data.players) {
                         attendanceData.push({
-                            key,
+                            key: dateKey,  // Using clean dateKey directly
                             date: data.date,
                             players: data.players
                         });
@@ -140,7 +138,6 @@ const debouncedDisplayHistory = debounce(() => {
 
             // Sort by date (newest first)
             attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
-            debugLog("Sorted attendance data:", attendanceData);
 
             // Display each record
             attendanceData.forEach(record => {
@@ -159,7 +156,6 @@ const debouncedDisplayHistory = debounce(() => {
         })
         .catch(error => {
             console.error('Error loading attendance:', error);
-            debugLog("Error in displayHistory:", error);
             alert('Error loading attendance history');
         });
 }, 300); // 300ms debounce delay
@@ -401,12 +397,11 @@ function deleteAttendance(dateKey) {
     if (confirm('Are you sure you want to delete this attendance record?')) {
         db.ref(`attendance/${dateKey}`).remove()
             .then(() => {
-                alert('Record deleted successfully');
-                displayHistory(); // Refresh the display
+                alert('Attendance record deleted successfully!');
             })
-            .catch(error => {
-                console.error('Error deleting record:', error);
-                alert('Error deleting record');
+            .catch((error) => {
+                console.error('Error deleting attendance:', error);
+                alert('Error deleting attendance record');
             });
     }
 }
