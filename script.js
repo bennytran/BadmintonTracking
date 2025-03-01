@@ -295,6 +295,7 @@ function removePlayer(name) {
 }
 
 function displayHistory() {
+    console.log("displayHistory called");
     const historyDiv = document.getElementById('attendanceHistory');
     if (!historyDiv) return;
 
@@ -307,8 +308,12 @@ function displayHistory() {
         .then((snapshot) => {
             const attendanceData = [];
 
+            console.log("Raw Firebase data:", snapshot.val());
+
             snapshot.forEach((dateSnapshot) => {
                 const data = dateSnapshot.val();
+                console.log("Processing date entry:", dateSnapshot.key, data);
+
                 if (data && data.date && data.players) {
                     attendanceData.push({
                         key: dateSnapshot.key,
@@ -318,13 +323,17 @@ function displayHistory() {
                 }
             });
 
+            console.log("Processed attendance data:", attendanceData);
+
             // Sort by date (newest first)
             attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            console.log("Sorted attendance data:", attendanceData);
 
             // Display each record
             attendanceData.forEach(record => {
                 const row = document.createElement('tr');
                 const formattedDate = formatDate(record.date);
+                console.log("Creating row for date:", formattedDate, "players:", record.players);
 
                 row.innerHTML = `
                     <td>${formattedDate}</td>
