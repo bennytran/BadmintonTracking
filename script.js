@@ -78,26 +78,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadData() {
+    // Load players
     db.ref('players').on('value', (snapshot) => {
-        players = [];
-        snapshot.forEach((childSnapshot) => {
-            const playerName = childSnapshot.val();
-            if (playerName) {
-                players.push(playerName);
-            }
-        });
-        players.sort((a, b) => a.localeCompare(b));
+        const data = snapshot.val();
+        players = data ? Object.values(data) : [];
         displayPlayers();
     });
 
-    // Listen for attendance changes
+    // Single attendance listener
+    initializeAttendanceListener();
+}
+
+function initializeAttendanceListener() {
     db.ref('attendance').on('value', (snapshot) => {
         const data = snapshot.val();
         attendanceHistory = data ? Object.values(data) : [];
         displayHistory();
-    }, (error) => {
-        console.error('Error loading attendance:', error);
-        alert('Error loading attendance');
     });
 }
 
@@ -397,33 +393,40 @@ function saveAttendance() {
 
     const dateKey = date.split('T')[0];
     let shouldSave = true;
+    let existingPlayers = [];
 
-    // Check for existing record first
     db.ref(`attendance/${dateKey}`).once('value')
         .then((snapshot) => {
             if (snapshot.exists()) {
                 shouldSave = confirm('Attendance record already exists for this date. Do you want to update it?');
+                // Get existing players if any
+                const data = snapshot.val();
+                existingPlayers = data.players || [];
             }
 
             if (!shouldSave) {
                 return Promise.reject('Update cancelled by user');
             }
 
-            // Only proceed with save if user confirmed or it's a new record
+            // Merge existing and new players, remove duplicates
+            const allPlayers = [...new Set([
+                ...existingPlayers,
+                ...Array.from(selectedPlayers)
+            ])].sort();
+
             const attendanceRecord = {
                 date: dateKey,
-                players: Array.from(selectedPlayers).sort()
+                players: allPlayers
             };
 
             return db.ref(`attendance/${dateKey}`).set(attendanceRecord);
         })
         .then(() => {
             alert('Attendance saved successfully!');
-            displayHistory(); // Refresh the display
         })
         .catch((error) => {
             if (error === 'Update cancelled by user') {
-                return; // Silent return for user cancellation
+                return;
             }
             console.error('Error saving attendance:', error);
             alert('Error saving attendance');
@@ -687,14 +690,7 @@ function capitalizeWords(name) {
         .join(' '); // Join back with spaces
 }
 
-// Separate function for attendance listener
-function initializeAttendanceListener() {
-    db.ref('attendance').on('value', (snapshot) => {
-        displayAttendance();
-    });
-}
-
-// Fix search functionality
+// Search functionality
 function searchPlayers() {
     const searchInput = document.getElementById('searchInput');
     const searchText = searchInput.value.toLowerCase();
