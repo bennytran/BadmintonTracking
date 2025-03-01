@@ -123,12 +123,13 @@ const debouncedDisplayHistory = debounce(() => {
         .then((snapshot) => {
             const attendanceData = [];
             const rawData = snapshot.val();
+            debugLog("Raw Firebase data:", rawData);
 
             if (rawData) {
                 Object.entries(rawData).forEach(([dateKey, data]) => {
                     if (data && data.date && data.players) {
                         attendanceData.push({
-                            key: dateKey,  // Using clean dateKey directly
+                            key: dateKey,  // This is the clean date format
                             date: data.date,
                             players: data.players
                         });
@@ -144,6 +145,7 @@ const debouncedDisplayHistory = debounce(() => {
                 const row = document.createElement('tr');
                 const formattedDate = formatDate(record.date);
 
+                // Pass the clean dateKey directly to deleteAttendance
                 row.innerHTML = `
                     <td>${formattedDate}</td>
                     <td>${record.players.join(', ')}</td>
@@ -394,9 +396,16 @@ function formatDate(dateString) {
 }
 
 function deleteAttendance(dateKey) {
+    debugLog("Deleting attendance for date:", dateKey);
+
     if (confirm('Are you sure you want to delete this attendance record?')) {
-        db.ref(`attendance/${dateKey}`).remove()
+        // Ensure we're using the raw dateKey without any formatting
+        const cleanDateKey = dateKey.replace('date: ', '').replace(/"/g, '');
+        debugLog("Clean date key for deletion:", cleanDateKey);
+
+        db.ref(`attendance/${cleanDateKey}`).remove()
             .then(() => {
+                debugLog("Successfully deleted attendance for:", cleanDateKey);
                 alert('Attendance record deleted successfully!');
             })
             .catch((error) => {
