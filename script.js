@@ -21,6 +21,9 @@ function debounce(func, wait) {
     };
 }
 
+// Add flag at the top of file
+let isListenerInitialized = false;
+
 // Initialize Firebase listeners when page loads
 document.addEventListener('DOMContentLoaded', () => {
     // Test connection
@@ -29,8 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(() => {
             console.log("Successfully connected to Firebase!");
             // Initialize the rest of your app
-            loadData();
-            initializeAttendanceListener();
+            if (!isListenerInitialized) {
+                loadData();
+            }
         })
         .catch((error) => {
             console.error("Error connecting to Firebase:", error);
@@ -98,8 +102,10 @@ function loadData() {
         displayPlayers();
     });
 
-    // Single attendance listener
-    initializeAttendanceListener();
+    // Only initialize attendance listener if not already done
+    if (!isListenerInitialized) {
+        initializeAttendanceListener();
+    }
 }
 
 // Modify the display function to be debounced
@@ -160,10 +166,14 @@ const debouncedDisplayHistory = debounce(() => {
         });
 }, 300); // 300ms debounce delay
 
-// Update the listener to use debounced display
 function initializeAttendanceListener() {
+    if (isListenerInitialized) {
+        debugLog("Attendance listener already initialized, skipping");
+        return;
+    }
+
     debugLog("Setting up attendance listener");
-    // Remove any existing listeners first
+    // Remove any existing listeners first (just to be safe)
     db.ref('attendance').off('value');
 
     // Set up new listener
@@ -171,6 +181,8 @@ function initializeAttendanceListener() {
         debugLog("Attendance listener triggered with data:", snapshot.val());
         debouncedDisplayHistory();
     });
+
+    isListenerInitialized = true;
 }
 
 function addPlayer() {
