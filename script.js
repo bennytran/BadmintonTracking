@@ -395,19 +395,30 @@ function saveAttendance() {
         return;
     }
 
-    // Create a clean key from the date (YYYY-MM-DD format)
-    const dateKey = date.split('T')[0]; // Handle both date and datetime strings
+    const dateKey = date.split('T')[0];
 
-    // Create attendance record with proper structure
-    const attendanceRecord = {
-        date: dateKey,
-        players: Array.from(selectedPlayers).sort()
-    };
+    // First check if there's an existing record for this date
+    db.ref(`attendance/${dateKey}`).once('value')
+        .then((snapshot) => {
+            if (snapshot.exists()) {
+                return confirm('Attendance record already exists for this date. Do you want to update it?');
+            }
+            return true;
+        })
+        .then((shouldSave) => {
+            if (!shouldSave) return;
 
-    // Save to Firebase using clean date as key
-    db.ref(`attendance/${dateKey}`).set(attendanceRecord)
+            const attendanceRecord = {
+                date: dateKey,
+                players: Array.from(selectedPlayers).sort()
+            };
+
+            return db.ref(`attendance/${dateKey}`).set(attendanceRecord);
+        })
         .then(() => {
+            if (!shouldSave) return;
             alert('Attendance saved successfully!');
+            displayHistory(); // Refresh the display
         })
         .catch((error) => {
             console.error('Error saving attendance:', error);
