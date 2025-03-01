@@ -90,7 +90,9 @@ function loadData() {
 }
 
 function initializeAttendanceListener() {
+    debugLog("Setting up attendance listener");
     db.ref('attendance').on('value', (snapshot) => {
+        debugLog("Attendance listener triggered");
         const data = snapshot.val();
         attendanceHistory = data ? Object.values(data) : [];
         displayHistory();
@@ -295,9 +297,12 @@ function removePlayer(name) {
 }
 
 function displayHistory() {
-    console.log("displayHistory called");
+    debugLog("displayHistory called");
     const historyDiv = document.getElementById('attendanceHistory');
-    if (!historyDiv) return;
+    if (!historyDiv) {
+        debugLog("History div not found!");
+        return;
+    }
 
     // Clear existing content but keep the header row
     const headerRow = historyDiv.querySelector('tr');
@@ -307,12 +312,12 @@ function displayHistory() {
     db.ref('attendance').orderByKey().once('value')
         .then((snapshot) => {
             const attendanceData = [];
-
-            console.log("Raw Firebase data:", snapshot.val());
+            const rawData = snapshot.val();
+            debugLog("Raw Firebase data:", rawData);
 
             snapshot.forEach((dateSnapshot) => {
                 const data = dateSnapshot.val();
-                console.log("Processing date entry:", dateSnapshot.key, data);
+                debugLog(`Processing date entry: ${dateSnapshot.key}`, data);
 
                 if (data && data.date && data.players) {
                     attendanceData.push({
@@ -323,30 +328,21 @@ function displayHistory() {
                 }
             });
 
-            console.log("Processed attendance data:", attendanceData);
+            debugLog("Processed attendance data:", attendanceData);
 
             // Sort by date (newest first)
             attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
-            console.log("Sorted attendance data:", attendanceData);
+            debugLog("Sorted attendance data:", attendanceData);
 
             // Display each record
             attendanceData.forEach(record => {
-                const row = document.createElement('tr');
                 const formattedDate = formatDate(record.date);
-                console.log("Creating row for date:", formattedDate, "players:", record.players);
-
-                row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${record.players.join(', ')}</td>
-                    <td>
-                        <button class="delete-btn" onclick="deleteAttendance('${record.key}')">Delete</button>
-                    </td>
-                `;
-                historyDiv.appendChild(row);
+                debugLog(`Creating row for date: ${formattedDate}`, record.players);
             });
         })
         .catch(error => {
             console.error('Error loading attendance:', error);
+            debugLog("Error in displayHistory:", error);
             alert('Error loading attendance history');
         });
 }
@@ -383,6 +379,7 @@ function deleteAttendance(dateKey) {
 }
 
 function saveAttendance() {
+    debugLog("saveAttendance called");
     const dateInput = document.getElementById('attendanceDate');
     if (!dateInput) {
         console.error('Date input not found');
@@ -838,4 +835,12 @@ function displayAttendance() {
                 historyDiv.appendChild(row);
             });
         });
+}
+
+// Add this helper function at the top
+function debugLog(message, data) {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`[${timestamp}] ${message}`, data || '');
+    // Force log to persist
+    console.trace(`[${timestamp}] Called from`);
 }
