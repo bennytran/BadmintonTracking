@@ -92,7 +92,10 @@ function loadData() {
 function initializeAttendanceListener() {
     debugLog("Setting up attendance listener");
     db.ref('attendance').on('value', (snapshot) => {
-        debugLog("Attendance listener triggered");
+        debugLog("Attendance listener triggered with data:", snapshot.val());
+        debugLog("Listener call stack:");
+        console.trace();  // This will show us where the listener is called from
+
         const data = snapshot.val();
         attendanceHistory = data ? Object.values(data) : [];
         displayHistory();
@@ -297,6 +300,9 @@ function removePlayer(name) {
 }
 
 function displayHistory() {
+    debugLog("displayHistory called from:");
+    console.trace();  // This will show us where displayHistory is called from
+
     debugLog("displayHistory called");
     const historyDiv = document.getElementById('attendanceHistory');
     if (!historyDiv) {
