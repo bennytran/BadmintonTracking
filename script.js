@@ -1,3 +1,5 @@
+// Version 1.1.5 - Consolidated attendance display functions for better performance
+
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
 
@@ -108,9 +110,9 @@ function loadData() {
     }
 }
 
-// Modify the display function to be debounced
-const debouncedDisplayHistory = debounce(() => {
-    debugLog("displayHistory called (debounced)");
+// Single consolidated function for displaying attendance history with debouncing
+const displayAttendanceHistory = debounce(() => {
+    debugLog("displayAttendanceHistory called");
     const historyBody = document.getElementById('attendanceHistory');
     if (!historyBody) {
         debugLog("History tbody not found!");
@@ -122,14 +124,19 @@ const debouncedDisplayHistory = debounce(() => {
     db.ref('attendance').orderByKey().once('value')
         .then((snapshot) => {
             const attendanceData = [];
+            const processedDates = new Set(); // Track processed dates
             const rawData = snapshot.val();
             debugLog("Raw Firebase data:", rawData);
 
             if (rawData) {
                 Object.entries(rawData).forEach(([dateKey, data]) => {
+                    // Skip if we've already processed this date
+                    if (processedDates.has(dateKey)) return;
+                    processedDates.add(dateKey);
+
                     if (data && data.date && data.players) {
                         attendanceData.push({
-                            key: dateKey,  // This is the clean date format
+                            key: dateKey,
                             date: data.date,
                             players: data.players
                         });
@@ -140,12 +147,18 @@ const debouncedDisplayHistory = debounce(() => {
             // Sort by date (newest first)
             attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+            if (attendanceData.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="3" class="text-center">No attendance records</td>';
+                historyBody.appendChild(emptyRow);
+                return;
+            }
+
             // Display each record
             attendanceData.forEach(record => {
                 const row = document.createElement('tr');
                 const formattedDate = formatDate(record.date);
 
-                // Pass the clean dateKey directly to deleteAttendance
                 row.innerHTML = `
                     <td>${formattedDate}</td>
                     <td>${record.players.join(', ')}</td>
@@ -162,6 +175,7 @@ const debouncedDisplayHistory = debounce(() => {
         });
 }, 300); // 300ms debounce delay
 
+// Update the initialization function to use the new consolidated function
 function initializeAttendanceListener() {
     if (isListenerInitialized) {
         debugLog("Attendance listener already initialized, skipping");
@@ -169,13 +183,13 @@ function initializeAttendanceListener() {
     }
 
     debugLog("Setting up attendance listener");
-    // Remove any existing listeners first (just to be safe)
+    // Remove any existing listeners first
     db.ref('attendance').off('value');
 
     // Set up new listener
     db.ref('attendance').on('value', (snapshot) => {
         debugLog("Attendance listener triggered with data:", snapshot.val());
-        debouncedDisplayHistory();
+        displayAttendanceHistory();
     });
 
     isListenerInitialized = true;
@@ -488,58 +502,6 @@ function showNotification(message) {
     }, 3000);
 }
 
-// Export functions for testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        addPlayer: function () {
-            const playerInput = document.getElementById('playerName');
-            const name = playerInput.value.trim();
-
-            if (!name) {
-                alert('Please enter a player name');
-                return;
-            }
-
-            if (players.includes(name)) {
-                alert('Player already exists in the list');
-                return;
-            }
-
-            db.ref('players').push(name);
-            playerInput.value = '';
-            playerInput.focus();
-        },
-
-        saveAttendance: function () {
-            const date = document.getElementById('attendanceDate').value;
-            if (!date) {
-                alert('Please select a date');
-                return;
-            }
-
-            const selectedPlayers = getSelectedPlayers();
-            if (selectedPlayers.length === 0) {
-                alert('Please select at least one player');
-                return;
-            }
-
-            db.ref(`attendance/${date}`).set({
-                date: date,
-                players: selectedPlayers
-            });
-
-            showNotification('Attendance saved successfully!');
-        },
-
-        // Add other functions you want to test
-        displayPlayers,
-        removePlayer,
-        loadData,
-        togglePlayerSelection,
-        getSelectedPlayers,
-        toggleSelectAll
-    };
-}
 
 // Add this at the bottom of your script
 window.addEventListener('beforeunload', () => {
@@ -656,72 +618,6 @@ document.getElementById('playerName').addEventListener('input', function (e) {
     }
 });
 
-function displayAttendance() {
-    const historyDiv = document.getElementById('attendanceHistory');
-    historyDiv.innerHTML = '';
-
-    db.ref('attendance').once('value')
-        .then((snapshot) => {
-            const attendanceData = [];
-            const processedDates = new Set(); // Track processed dates
-
-            snapshot.forEach((dateSnapshot) => {
-                const date = dateSnapshot.key.replace('date: ', '').replace(/"/g, '');
-
-                // Skip if we've already processed this date
-                if (processedDates.has(date)) return;
-                processedDates.add(date);
-
-                const data = dateSnapshot.val();
-                if (data && data.players) {
-                    attendanceData.push({
-                        date: date,
-                        players: data.players
-                    });
-                }
-            });
-
-            // Sort by date (newest first)
-            attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            if (attendanceData.length === 0) {
-                const emptyRow = document.createElement('tr');
-                emptyRow.innerHTML = '<td colspan="3" class="text-center">No attendance records</td>';
-                historyDiv.appendChild(emptyRow);
-                return;
-            }
-
-            attendanceData.forEach(record => {
-                const row = document.createElement('tr');
-                const displayDate = new Date(record.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-
-                row.innerHTML = `
-                    <td>${displayDate}</td>
-                    <td>${record.players.join(', ')}</td>
-                    <td>
-                        <button class="delete-btn" onclick="deleteAttendance('${record.date}')">Delete</button>
-                    </td>
-                `;
-                historyDiv.appendChild(row);
-            });
-        });
-}
-
-
-// Function to capitalize first letter of each word
-function capitalizeWords(name) {
-    return name
-        .trim() // Remove leading/trailing spaces
-        .toLowerCase() // Convert all to lowercase first
-        .split(' ') // Split into words
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter of each word
-        .join(' '); // Join back with spaces
-}
-
 // Search functionality
 function searchPlayers() {
     const searchInput = document.getElementById('searchInput');
@@ -768,62 +664,6 @@ function selectPlayer(player) {
 }
 
 
-
-// Fix date handling in displayAttendance
-function displayAttendance() {
-    const historyDiv = document.getElementById('attendanceHistory');
-    historyDiv.innerHTML = '';
-
-    db.ref('attendance').once('value')
-        .then((snapshot) => {
-            const attendanceData = [];
-            const processedDates = new Set(); // Track processed dates
-
-            snapshot.forEach((dateSnapshot) => {
-                const date = dateSnapshot.key.replace('date: ', '').replace(/"/g, '');
-
-                // Skip if we've already processed this date
-                if (processedDates.has(date)) return;
-                processedDates.add(date);
-
-                const data = dateSnapshot.val();
-                if (data && data.players) {
-                    attendanceData.push({
-                        date: date,
-                        players: data.players
-                    });
-                }
-            });
-
-            // Sort by date (newest first)
-            attendanceData.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-            if (attendanceData.length === 0) {
-                const emptyRow = document.createElement('tr');
-                emptyRow.innerHTML = '<td colspan="3" class="text-center">No attendance records</td>';
-                historyDiv.appendChild(emptyRow);
-                return;
-            }
-
-            attendanceData.forEach(record => {
-                const row = document.createElement('tr');
-                const displayDate = new Date(record.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-
-                row.innerHTML = `
-                    <td>${displayDate}</td>
-                    <td>${record.players.join(', ')}</td>
-                    <td>
-                        <button class="delete-btn" onclick="deleteAttendance('${record.date}')">Delete</button>
-                    </td>
-                `;
-                historyDiv.appendChild(row);
-            });
-        });
-}
 
 // Add this helper function at the top
 function debugLog(message, data) {
