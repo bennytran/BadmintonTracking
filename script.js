@@ -1,4 +1,4 @@
-// Version 1.1.6 - Added alphabetical sorting within letter groups
+// Version 1.1.7 - Added detailed player information modal
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic

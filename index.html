@@ -14,8 +14,7 @@
         <h1>Badminton Club Attendance</h1>
 
         <div class="add-player-section">
-            <input type="text" id="playerNameInput" placeholder="Enter player name">
-            <button id="addPlayerBtn">Add Player</button>
+            <button id="addPlayerBtn" class="primary-btn">Add Player</button>
         </div>
 
         <div class="name-list-section">
@@ -93,9 +92,8 @@
     </div>
 
     <!-- Update version tracker -->
-    <div class="version-tracker"
-        style="position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.1); padding: 5px; border-radius: 4px; z-index: 1000;">
-        <small>v1.1.6 - Added alphabetical sorting within letter groups</small>
+    <div class="version-tracker">
+        <small>v1.1.7 - Added detailed player information modal</small>
     </div>
 
     <!-- Firebase SDKs -->
@@ -122,6 +120,49 @@
 
     <!-- Your main script -->
     <script src="script.js"></script>
+
+    <!-- Add Player Modal -->
+    <div id="addPlayerModal" class="modal">
+        <div class="modal-content">
+            <h3>Add New Player</h3>
+            <form id="addPlayerForm">
+                <div class="form-group">
+                    <label for="username">Username*</label>
+                    <input type="text" id="username" required>
+                    <small class="error-message" id="usernameError"></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="fullname">Full Name*</label>
+                    <input type="text" id="fullname" required>
+                    <small class="error-message" id="fullnameError"></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number*</label>
+                    <input type="tel" id="phone" required>
+                    <small class="error-message" id="phoneError"></small>
+                </div>
+
+                <div class="form-group">
+                    <label>Initial Status</label>
+                    <div class="status-options">
+                        <label class="radio-label">
+                            <input type="radio" name="status" value="present"> Present
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="status" value="absent" checked> Absent
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" id="submitPlayerBtn" class="confirm-btn" disabled>Add Player</button>
+                    <button type="button" class="cancel-btn" onclick="closeAddPlayerModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 
 </html>
