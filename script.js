@@ -1,4 +1,4 @@
-// Version 1.1.5 - Consolidated attendance display functions for better performance
+// Version 1.1.6 - Added alphabetical sorting within letter groups
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -253,7 +253,7 @@ function displayPlayers() {
         playerList.appendChild(noResults);
     }
 
-    // Group players by first letter
+    // Group players by first letter and sort within groups
     const groupedPlayers = {};
     players.forEach(player => {
         const firstLetter = player.charAt(0).toUpperCase();
@@ -263,6 +263,12 @@ function displayPlayers() {
         groupedPlayers[firstLetter].push(player);
     });
 
+    // Sort names within each letter group
+    Object.keys(groupedPlayers).forEach(letter => {
+        groupedPlayers[letter].sort((a, b) => a.localeCompare(b));
+    });
+
+    // Display sorted groups
     Object.keys(groupedPlayers).sort().forEach(letter => {
         const letterSection = document.createElement('div');
         letterSection.className = 'letter-section';
