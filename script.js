@@ -61,7 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add button click event listener
     const addPlayerBtn = document.getElementById('addPlayerBtn');
     if (addPlayerBtn) {
-        addPlayerBtn.addEventListener('click', addPlayer);
+        addPlayerBtn.addEventListener('click', showAddPlayerModal);
+        console.log('Add Player button listener added'); // Debug log
+    } else {
+        console.error('Add Player button not found');
     }
 
     // Search input event listeners
@@ -94,6 +97,30 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('searchDropdown').style.display = 'none';
         }
     });
+
+    // Form validation
+    const addPlayerForm = document.getElementById('addPlayerForm');
+    if (addPlayerForm) {
+        // Add input validation listeners
+        ['username', 'fullname', 'phone'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', validateForm);
+            }
+        });
+
+        // Form submission
+        addPlayerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const playerData = {
+                username: document.getElementById('username').value,
+                fullname: document.getElementById('fullname').value,
+                phone: document.getElementById('phone').value,
+                status: document.querySelector('input[name="status"]:checked').value
+            };
+            addNewPlayer(playerData);
+        });
+    }
 });
 
 function loadData() {
@@ -678,3 +705,70 @@ function debugLog(message, data) {
     // Force log to persist
     console.trace(`[${timestamp}] Called from`);
 }
+
+// Add Player Modal Functions
+function showAddPlayerModal() {
+    const modal = document.getElementById('addPlayerModal');
+    if (!modal) {
+        console.error('Modal element not found');
+        return;
+    }
+    modal.style.display = 'block';
+    // Reset form
+    document.getElementById('addPlayerForm').reset();
+    // Reset validation states
+    validateForm();
+}
+
+function closeAddPlayerModal() {
+    const modal = document.getElementById('addPlayerModal');
+    if (!modal) {
+        console.error('Modal element not found');
+        return;
+    }
+    modal.style.display = 'none';
+    // Clear form and errors
+    document.getElementById('addPlayerForm').reset();
+    clearErrors();
+}
+
+// Update the event listener in your DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    // ... existing code ...
+
+    // Add player button click handler
+    const addPlayerBtn = document.getElementById('addPlayerBtn');
+    if (addPlayerBtn) {
+        addPlayerBtn.addEventListener('click', showAddPlayerModal);
+        console.log('Add Player button listener added'); // Debug log
+    } else {
+        console.error('Add Player button not found');
+    }
+
+    // Form validation
+    const addPlayerForm = document.getElementById('addPlayerForm');
+    if (addPlayerForm) {
+        // Add input validation listeners
+        ['username', 'fullname', 'phone'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('input', validateForm);
+            }
+        });
+
+        // Form submission
+        addPlayerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const playerData = {
+                username: document.getElementById('username').value,
+                fullname: document.getElementById('fullname').value,
+                phone: document.getElementById('phone').value,
+                status: document.querySelector('input[name="status"]:checked').value
+            };
+            addNewPlayer(playerData);
+        });
+    }
+});
+
+// Add some debug logging
+console.log('Script loaded'); // This will help verify the script is running

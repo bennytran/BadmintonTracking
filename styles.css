@@ -347,13 +347,14 @@ input[type="date"] {
 }
 
 .modal-content {
-    background-color: var(--bg-white);
+    background-color: white;
     margin: 15% auto;
     padding: 30px;
-    border-radius: var(--border-radius);
+    border-radius: 8px;
     width: 90%;
     max-width: 500px;
     position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
