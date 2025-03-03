@@ -121,6 +121,9 @@ document.addEventListener('DOMContentLoaded', () => {
             addNewPlayer(playerData);
         });
     }
+
+    // Real-time validation
+    setupRealTimeValidation();
 });
 
 function loadData() {
@@ -772,3 +775,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Add some debug logging
 console.log('Script loaded'); // This will help verify the script is running
+
+// Real-time validation
+function setupRealTimeValidation() {
+    const inputs = ['username', 'fullname', 'phone'];
+
+    inputs.forEach(id => {
+        const input = document.getElementById(id);
+        const errorElement = document.getElementById(`${id}Error`);
+
+        input.addEventListener('input', function () {
+            const isValid = this.checkValidity();
+            this.classList.toggle('valid', isValid);
+            this.classList.toggle('invalid', !isValid);
+
+            // Show appropriate error message
+            if (!isValid) {
+                switch (id) {
+                    case 'username':
+                        errorElement.textContent = 'Username can only contain letters, numbers, and ._-';
+                        break;
+                    case 'fullname':
+                        errorElement.textContent = 'Full name can only contain letters and spaces';
+                        break;
+                    case 'phone':
+                        errorElement.textContent = 'Please enter a valid phone number';
+                        break;
+                }
+            } else {
+                errorElement.textContent = '';
+            }
+
+            // Update submit button state
+            validateForm();
+        });
+    });
+}

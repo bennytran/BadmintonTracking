@@ -395,8 +395,12 @@ input[type="date"] {
 
 .error-message {
     color: var(--accent-red);
-    font-size: 13px;
-    margin-top: 6px;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+
+.form-group input:invalid+.error-message {
     display: block;
 }
 
@@ -472,9 +476,7 @@ input[type="date"] {
 
 /* Required field indicator */
 .form-group label[for]::after {
-    content: '*';
-    color: var(--accent-red);
-    margin-left: 4px;
+    content: '';
 }
 
 /* Update primary button style */
@@ -811,4 +813,22 @@ screen and (min-resolution: 192dpi) {
     .control-btn {
         display: none;
     }
+}
+
+/* Add styles for validation feedback */
+.form-group input.valid {
+    border-color: var(--accent-green);
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+.form-group input.invalid {
+    border-color: var(--accent-red);
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* Style for hint text */
+.hint-message {
+    color: #666;
+    font-size: 12px;
+    margin-top: 4px;
 }
