@@ -1,4 +1,4 @@
-// Version 1.1.8 - Added real-time form validation and improved modal UI
+// Version 1.1.9 - Fixed real-time form validation and submit button state
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -640,20 +640,6 @@ function selectSearchItem(player) {
     }
 }
 
-// Add input validation for player name input
-document.getElementById('playerName').addEventListener('input', function (e) {
-    const input = e.target;
-    const name = input.value;
-
-    if (name && !validateName(name)) {
-        input.style.borderColor = '#dc3545';
-        input.title = 'Name can only contain letters, numbers, and spaces';
-    } else {
-        input.style.borderColor = '';
-        input.title = '';
-    }
-});
-
 // Search functionality
 function searchPlayers() {
     const searchInput = document.getElementById('searchInput');
@@ -720,7 +706,15 @@ function showAddPlayerModal() {
     // Reset form
     document.getElementById('addPlayerForm').reset();
     // Reset validation states
-    validateForm();
+    const inputs = ['username', 'fullname', 'phone'];
+    inputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.classList.remove('valid', 'invalid');
+        }
+    });
+    // Setup validation
+    setupRealTimeValidation();
 }
 
 function closeAddPlayerModal() {
@@ -783,7 +777,7 @@ function setupRealTimeValidation() {
 
     inputs.forEach(id => {
         const input = document.getElementById(id);
-        const hintElement = input.parentElement.querySelector('.hint-message');
+        if (!input) return; // Skip if input doesn't exist
 
         input.addEventListener('input', function () {
             let isValid = false;
@@ -801,28 +795,31 @@ function setupRealTimeValidation() {
             }
 
             // Update input styling
-            this.classList.toggle('valid', isValid);
-            this.classList.toggle('invalid', !isValid);
+            if (isValid) {
+                this.classList.remove('invalid');
+                this.classList.add('valid');
+            } else {
+                this.classList.remove('valid');
+                this.classList.add('invalid');
+            }
 
-            // Update hint message styling
+            // Update hint message
+            const hintElement = this.parentElement.querySelector('.hint-message');
             if (hintElement) {
                 hintElement.classList.toggle('error', !isValid);
             }
 
             // Check if all inputs are valid
             const allValid = inputs.every(inputId => {
-                const inputElement = document.getElementById(inputId);
-                return inputElement && inputElement.classList.contains('valid');
+                const element = document.getElementById(inputId);
+                return element && element.value && element.classList.contains('valid');
             });
 
             // Update submit button state
-            submitBtn.disabled = !allValid;
-            if (allValid) {
-                submitBtn.style.backgroundColor = 'var(--accent-green)';
-                submitBtn.style.cursor = 'pointer';
-            } else {
-                submitBtn.style.backgroundColor = '#ccc';
-                submitBtn.style.cursor = 'not-allowed';
+            if (submitBtn) {
+                submitBtn.disabled = !allValid;
+                submitBtn.style.backgroundColor = allValid ? 'var(--accent-green)' : '#ccc';
+                submitBtn.style.cursor = allValid ? 'pointer' : 'not-allowed';
             }
         });
     });
