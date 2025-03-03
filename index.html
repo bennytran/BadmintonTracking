@@ -93,7 +93,7 @@
 
     <!-- Update version tracker -->
     <div class="version-tracker">
-        <small>v1.1.7 - Added detailed player information modal</small>
+        <small>v1.1.8 - Added real-time form validation and improved modal UI</small>
     </div>
 
     <!-- Firebase SDKs -->
@@ -128,23 +128,20 @@
             <form id="addPlayerForm">
                 <div class="form-group">
                     <label for="username">Username*</label>
-                    <input type="text" id="username" required pattern="^[a-zA-Z0-9._-]+$">
+                    <input type="text" id="username" required>
                     <small class="hint-message">Letters, numbers, and ._- only</small>
-                    <small class="error-message" id="usernameError"></small>
                 </div>
 
                 <div class="form-group">
                     <label for="fullname">Full Name*</label>
-                    <input type="text" id="fullname" required pattern="^[a-zA-Z\s]+$">
+                    <input type="text" id="fullname" required>
                     <small class="hint-message">Letters and spaces only</small>
-                    <small class="error-message" id="fullnameError"></small>
                 </div>
 
                 <div class="form-group">
                     <label for="phone">Phone Number*</label>
-                    <input type="tel" id="phone" required pattern="^[0-9+\s-()]+$">
+                    <input type="tel" id="phone" required>
                     <small class="hint-message">Numbers and +()- only</small>
-                    <small class="error-message" id="phoneError"></small>
                 </div>
 
                 <div class="form-group">

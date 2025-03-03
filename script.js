@@ -1,4 +1,4 @@
-// Version 1.1.7 - Added detailed player information modal
+// Version 1.1.8 - Added real-time form validation and improved modal UI
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -779,35 +779,51 @@ console.log('Script loaded'); // This will help verify the script is running
 // Real-time validation
 function setupRealTimeValidation() {
     const inputs = ['username', 'fullname', 'phone'];
+    const submitBtn = document.getElementById('submitPlayerBtn');
 
     inputs.forEach(id => {
         const input = document.getElementById(id);
-        const errorElement = document.getElementById(`${id}Error`);
+        const hintElement = input.parentElement.querySelector('.hint-message');
 
         input.addEventListener('input', function () {
-            const isValid = this.checkValidity();
+            let isValid = false;
+
+            switch (id) {
+                case 'username':
+                    isValid = /^[a-zA-Z0-9._-]+$/.test(this.value);
+                    break;
+                case 'fullname':
+                    isValid = /^[a-zA-Z\s]+$/.test(this.value);
+                    break;
+                case 'phone':
+                    isValid = /^[0-9+\s-()]+$/.test(this.value);
+                    break;
+            }
+
+            // Update input styling
             this.classList.toggle('valid', isValid);
             this.classList.toggle('invalid', !isValid);
 
-            // Show appropriate error message
-            if (!isValid) {
-                switch (id) {
-                    case 'username':
-                        errorElement.textContent = 'Username can only contain letters, numbers, and ._-';
-                        break;
-                    case 'fullname':
-                        errorElement.textContent = 'Full name can only contain letters and spaces';
-                        break;
-                    case 'phone':
-                        errorElement.textContent = 'Please enter a valid phone number';
-                        break;
-                }
-            } else {
-                errorElement.textContent = '';
+            // Update hint message styling
+            if (hintElement) {
+                hintElement.classList.toggle('error', !isValid);
             }
 
+            // Check if all inputs are valid
+            const allValid = inputs.every(inputId => {
+                const inputElement = document.getElementById(inputId);
+                return inputElement && inputElement.classList.contains('valid');
+            });
+
             // Update submit button state
-            validateForm();
+            submitBtn.disabled = !allValid;
+            if (allValid) {
+                submitBtn.style.backgroundColor = 'var(--accent-green)';
+                submitBtn.style.cursor = 'pointer';
+            } else {
+                submitBtn.style.backgroundColor = '#ccc';
+                submitBtn.style.cursor = 'not-allowed';
+            }
         });
     });
 }
