@@ -1,4 +1,4 @@
-// Version 1.1.9 - Fixed real-time form validation and submit button state
+// Version 1.2.0 - Fixed player addition functionality and added success notifications
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -527,12 +527,24 @@ function saveAttendance() {
         });
 }
 
-function showNotification(message) {
+function showNotification(message, type = 'success') {
     const notification = document.createElement('div');
-    notification.className = 'notification';
+    notification.className = `notification ${type}`;
     notification.textContent = message;
     document.body.appendChild(notification);
 
+    // Add some styling for visibility
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.right = '20px';
+    notification.style.padding = '15px 25px';
+    notification.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
+    notification.style.color = 'white';
+    notification.style.borderRadius = '4px';
+    notification.style.zIndex = '1000';
+    notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+
+    // Remove notification after 3 seconds
     setTimeout(() => {
         notification.remove();
     }, 3000);
@@ -823,4 +835,28 @@ function setupRealTimeValidation() {
             }
         });
     });
+}
+
+function addNewPlayer(playerData) {
+    // Generate a unique key for the new player
+    const newPlayerRef = db.ref('players').push();
+
+    // Create the player object
+    const player = {
+        username: playerData.username,
+        fullname: playerData.fullname,
+        phone: playerData.phone,
+        status: playerData.status
+    };
+
+    // Add to Firebase
+    newPlayerRef.set(player)
+        .then(() => {
+            showNotification(`${playerData.fullname} has been added successfully!`);
+            closeAddPlayerModal(); // Close the modal after successful addition
+        })
+        .catch(error => {
+            console.error('Error adding player:', error);
+            showNotification('Error adding player', 'error');
+        });
 }
