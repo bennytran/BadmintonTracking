@@ -1,6 +1,7 @@
 // Version 1.2.0 - Fixed player addition functionality and added success notifications
 // Version 1.2.1 - Updated UI layout and player information display
 // Version 1.2.2 - Fixed form submission redirect issue
+// Version 1.2.3 - Fixed player list display and data handling
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -141,7 +142,16 @@ function loadData() {
     // Load players
     db.ref('players').on('value', (snapshot) => {
         const data = snapshot.val();
-        players = data ? Object.values(data) : [];
+        // Convert Firebase object to array with proper structure
+        players = [];
+        if (data) {
+            Object.keys(data).forEach(key => {
+                players.push({
+                    id: key,
+                    ...data[key]
+                });
+            });
+        }
         console.log('Loaded players:', players); // Debug log
         displayPlayers();
     });
@@ -284,28 +294,28 @@ function addPlayer() {
 function displayPlayers() {
     console.log('Displaying players:', players); // Debug log
     const playerList = document.getElementById('playerList');
-    playerList.innerHTML = '';
-
-    // Add no results message div if it doesn't exist
-    if (!document.getElementById('noSearchResults')) {
-        const noResults = document.createElement('div');
-        noResults.id = 'noSearchResults';
-        noResults.style.display = 'none';
-        noResults.style.padding = '10px';
-        noResults.textContent = 'No players found';
-        playerList.appendChild(noResults);
-    }
-
-    if (!players || players.length === 0) {
-        document.getElementById('noSearchResults').style.display = 'block';
+    if (!playerList) {
+        console.error('Player list element not found');
         return;
     }
 
-    // Group players by first letter and sort within groups
+    playerList.innerHTML = '';
+
+    if (!players || players.length === 0) {
+        playerList.innerHTML = '<div class="no-players">No players found</div>';
+        return;
+    }
+
+    // Sort players by username
+    const sortedPlayers = [...players].sort((a, b) =>
+        (a.username || '').localeCompare(b.username || '')
+    );
+
+    // Group by first letter
     const groupedPlayers = {};
-    players.forEach(player => {
+    sortedPlayers.forEach(player => {
         if (!player || !player.username) {
-            console.log('Invalid player:', player); // Debug log
+            console.warn('Invalid player data:', player);
             return;
         }
         const firstLetter = player.username.charAt(0).toUpperCase();
@@ -315,12 +325,7 @@ function displayPlayers() {
         groupedPlayers[firstLetter].push(player);
     });
 
-    // Sort names within each letter group
-    Object.keys(groupedPlayers).forEach(letter => {
-        groupedPlayers[letter].sort((a, b) => a.username.localeCompare(b.username));
-    });
-
-    // Display sorted groups
+    // Display players
     Object.keys(groupedPlayers).sort().forEach(letter => {
         const letterSection = document.createElement('div');
         letterSection.className = 'letter-section';
@@ -333,13 +338,12 @@ function displayPlayers() {
         groupedPlayers[letter].forEach(player => {
             const playerItem = document.createElement('div');
             playerItem.className = 'player-item';
-            playerItem.setAttribute('data-player', player.username);
 
             playerItem.innerHTML = `
                 <div class="player-info">
-                    <span class="player-username">${player.username}</span>
-                    <span class="player-fullname">${player.fullname}</span>
-                    <span class="player-phone">${player.phone}</span>
+                    <span class="player-username">${player.username || ''}</span>
+                    <span class="player-fullname">${player.fullname || ''}</span>
+                    <span class="player-phone">${player.phone || ''}</span>
                 </div>
                 <div class="button-group">
                     <button class="add-btn" onclick="togglePlayerSelection(this, '${player.username}')">Add</button>
@@ -820,9 +824,14 @@ function setupRealTimeValidation() {
 
 function addNewPlayer(playerData) {
     return new Promise((resolve, reject) => {
+        // Validate data
+        if (!playerData.username || !playerData.fullname || !playerData.phone) {
+            reject(new Error('Missing required fields'));
+            return;
+        }
+
         const newPlayerRef = db.ref('players').push();
 
-        // Create the player object with the correct structure
         const player = {
             username: playerData.username,
             fullname: playerData.fullname,
@@ -831,8 +840,8 @@ function addNewPlayer(playerData) {
 
         newPlayerRef.set(player)
             .then(() => {
-                debugLog('Player added successfully:', player);
-                showNotification(`${playerData.fullname} has been added successfully!`);
+                console.log('Successfully added player:', player);
+                showNotification(`${player.fullname} has been added successfully!`);
                 closeAddPlayerModal();
                 resolve();
             })
