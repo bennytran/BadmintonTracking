@@ -139,10 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function loadData() {
-    // Load players
+    // Load players with new structure
     db.ref('players').on('value', (snapshot) => {
         const data = snapshot.val();
-        // Convert Firebase object to array with proper structure
         players = [];
         if (data) {
             Object.keys(data).forEach(key => {
@@ -292,12 +291,8 @@ function addPlayer() {
 }
 
 function displayPlayers() {
-    console.log('Displaying players:', players); // Debug log
     const playerList = document.getElementById('playerList');
-    if (!playerList) {
-        console.error('Player list element not found');
-        return;
-    }
+    if (!playerList) return;
 
     playerList.innerHTML = '';
 
@@ -311,49 +306,21 @@ function displayPlayers() {
         (a.username || '').localeCompare(b.username || '')
     );
 
-    // Group by first letter
-    const groupedPlayers = {};
     sortedPlayers.forEach(player => {
-        if (!player || !player.username) {
-            console.warn('Invalid player data:', player);
-            return;
-        }
-        const firstLetter = player.username.charAt(0).toUpperCase();
-        if (!groupedPlayers[firstLetter]) {
-            groupedPlayers[firstLetter] = [];
-        }
-        groupedPlayers[firstLetter].push(player);
-    });
-
-    // Display players
-    Object.keys(groupedPlayers).sort().forEach(letter => {
-        const letterSection = document.createElement('div');
-        letterSection.className = 'letter-section';
-
-        const letterHeader = document.createElement('div');
-        letterHeader.className = 'letter-header';
-        letterHeader.textContent = letter;
-        letterSection.appendChild(letterHeader);
-
-        groupedPlayers[letter].forEach(player => {
-            const playerItem = document.createElement('div');
-            playerItem.className = 'player-item';
-
-            playerItem.innerHTML = `
-                <div class="player-info">
-                    <span class="player-username">${player.username || ''}</span>
-                    <span class="player-fullname">${player.fullname || ''}</span>
-                    <span class="player-phone">${player.phone || ''}</span>
-                </div>
-                <div class="button-group">
-                    <button class="add-btn" onclick="togglePlayerSelection(this, '${player.username}')">Add</button>
-                    <button class="remove-btn" onclick="showRemoveConfirmation('${player.username}')">Remove</button>
-                </div>
-            `;
-            letterSection.appendChild(playerItem);
-        });
-
-        playerList.appendChild(letterSection);
+        const playerItem = document.createElement('div');
+        playerItem.className = 'player-item';
+        playerItem.innerHTML = `
+            <div class="player-info">
+                <span class="player-username">${player.username || ''}</span>
+                <span class="player-fullname">${player.fullname || ''}</span>
+                <span class="player-phone">${player.phone || ''}</span>
+            </div>
+            <div class="button-group">
+                <button class="add-btn" onclick="togglePlayerSelection(this, '${player.username}')">Add</button>
+                <button class="remove-btn" onclick="showRemoveConfirmation('${player.username}')">Remove</button>
+            </div>
+        `;
+        playerList.appendChild(playerItem);
     });
 
     // Apply sticky behavior after rendering
@@ -493,63 +460,36 @@ function deleteAttendance(dateKey) {
 }
 
 function saveAttendance() {
-    debugLog("saveAttendance called");
-    const dateInput = document.getElementById('attendanceDate');
-    if (!dateInput) {
-        console.error('Date input not found');
-        return;
-    }
-
-    const date = dateInput.value;
+    const date = document.getElementById('attendanceDate').value;
     if (!date) {
         alert('Please select a date');
         return;
     }
 
-    if (selectedPlayers.size === 0) {
+    // Get selected usernames (not player names)
+    const selectedUsernames = Array.from(selectedPlayers);
+    if (selectedUsernames.length === 0) {
         alert('Please select at least one player');
         return;
     }
 
-    const dateKey = date.split('T')[0];
-    let shouldSave = true;
-    let existingPlayers = [];
+    // Create attendance record with new structure
+    const attendanceRef = db.ref('attendance').child(date.replace(/-/g, ''));
+    const attendanceData = {
+        date: date,
+        players: selectedUsernames
+    };
 
-    db.ref(`attendance/${dateKey}`).once('value')
-        .then((snapshot) => {
-            if (snapshot.exists()) {
-                shouldSave = confirm('Attendance record already exists for this date. Do you want to update it?');
-                // Get existing players if any
-                const data = snapshot.val();
-                existingPlayers = data.players || [];
-            }
-
-            if (!shouldSave) {
-                return Promise.reject('Update cancelled by user');
-            }
-
-            // Merge existing and new players, remove duplicates
-            const allPlayers = [...new Set([
-                ...existingPlayers,
-                ...Array.from(selectedPlayers)
-            ])].sort();
-
-            const attendanceRecord = {
-                date: dateKey,
-                players: allPlayers
-            };
-
-            return db.ref(`attendance/${dateKey}`).set(attendanceRecord);
-        })
+    attendanceRef.set(attendanceData)
         .then(() => {
-            alert('Attendance saved successfully!');
+            showNotification('Attendance saved successfully!');
+            selectedPlayers.clear();
+            updateSelectAllButton();
+            displayPlayers(); // Refresh display
         })
-        .catch((error) => {
-            if (error === 'Update cancelled by user') {
-                return;
-            }
+        .catch(error => {
             console.error('Error saving attendance:', error);
-            alert('Error saving attendance');
+            showNotification('Error saving attendance', 'error');
         });
 }
 
@@ -832,6 +772,7 @@ function addNewPlayer(playerData) {
 
         const newPlayerRef = db.ref('players').push();
 
+        // Create the player object with the new structure
         const player = {
             username: playerData.username,
             fullname: playerData.fullname,
