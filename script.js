@@ -142,6 +142,7 @@ function loadData() {
     db.ref('players').on('value', (snapshot) => {
         const data = snapshot.val();
         players = data ? Object.values(data) : [];
+        console.log('Loaded players:', players); // Debug log
         displayPlayers();
     });
 
@@ -281,6 +282,7 @@ function addPlayer() {
 }
 
 function displayPlayers() {
+    console.log('Displaying players:', players); // Debug log
     const playerList = document.getElementById('playerList');
     playerList.innerHTML = '';
 
@@ -294,9 +296,18 @@ function displayPlayers() {
         playerList.appendChild(noResults);
     }
 
+    if (!players || players.length === 0) {
+        document.getElementById('noSearchResults').style.display = 'block';
+        return;
+    }
+
     // Group players by first letter and sort within groups
     const groupedPlayers = {};
     players.forEach(player => {
+        if (!player || !player.username) {
+            console.log('Invalid player:', player); // Debug log
+            return;
+        }
         const firstLetter = player.username.charAt(0).toUpperCase();
         if (!groupedPlayers[firstLetter]) {
             groupedPlayers[firstLetter] = [];
@@ -811,8 +822,16 @@ function addNewPlayer(playerData) {
     return new Promise((resolve, reject) => {
         const newPlayerRef = db.ref('players').push();
 
-        newPlayerRef.set(playerData)
+        // Create the player object with the correct structure
+        const player = {
+            username: playerData.username,
+            fullname: playerData.fullname,
+            phone: playerData.phone
+        };
+
+        newPlayerRef.set(player)
             .then(() => {
+                debugLog('Player added successfully:', player);
                 showNotification(`${playerData.fullname} has been added successfully!`);
                 closeAddPlayerModal();
                 resolve();
