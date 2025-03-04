@@ -2,6 +2,7 @@
 // Version 1.2.1 - Updated UI layout and player information display
 // Version 1.2.2 - Fixed form submission redirect issue
 // Version 1.2.3 - Fixed player list display and data handling
+// Version 1.2.4 - Fixed add player functionality
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -681,30 +682,40 @@ function showAddPlayerModal() {
         return;
     }
     modal.style.display = 'block';
-    // Reset form
-    document.getElementById('addPlayerForm').reset();
-    // Reset validation states
-    const inputs = ['username', 'fullname', 'phone'];
-    inputs.forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-            input.classList.remove('valid', 'invalid');
+
+    // Reset form and validation states
+    const form = document.getElementById('addPlayerForm');
+    form.reset();
+    setupRealTimeValidation();
+
+    // Remove any existing event listeners
+    const submitBtn = document.getElementById('submitPlayerBtn');
+    const newSubmitBtn = submitBtn.cloneNode(true);
+    submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+
+    // Add new click event listener (not form submit)
+    newSubmitBtn.addEventListener('click', async () => {
+        const playerData = {
+            username: document.getElementById('username').value,
+            fullname: document.getElementById('fullname').value,
+            phone: document.getElementById('phone').value
+        };
+
+        try {
+            await addNewPlayer(playerData);
+        } catch (error) {
+            console.error('Error adding player:', error);
+            showNotification('Error adding player', 'error');
         }
     });
-    // Setup validation
-    setupRealTimeValidation();
 }
 
 function closeAddPlayerModal() {
     const modal = document.getElementById('addPlayerModal');
-    if (!modal) {
-        console.error('Modal element not found');
-        return;
+    if (modal) {
+        modal.style.display = 'none';
+        document.getElementById('addPlayerForm').reset();
     }
-    modal.style.display = 'none';
-    // Clear form and errors
-    document.getElementById('addPlayerForm').reset();
-    clearErrors();
 }
 
 // Real-time validation
@@ -764,25 +775,22 @@ function setupRealTimeValidation() {
 
 function addNewPlayer(playerData) {
     return new Promise((resolve, reject) => {
-        // Validate data
+        // Add validation
         if (!playerData.username || !playerData.fullname || !playerData.phone) {
+            showNotification('Please fill all required fields', 'error');
             reject(new Error('Missing required fields'));
             return;
         }
 
+        // Create a new reference with push()
         const newPlayerRef = db.ref('players').push();
 
-        // Create the player object with the new structure
-        const player = {
-            username: playerData.username,
-            fullname: playerData.fullname,
-            phone: playerData.phone
-        };
+        console.log('Adding player:', playerData); // Debug log
 
-        newPlayerRef.set(player)
+        newPlayerRef.set(playerData)
             .then(() => {
-                console.log('Successfully added player:', player);
-                showNotification(`${player.fullname} has been added successfully!`);
+                console.log('Successfully added player:', playerData);
+                showNotification(`${playerData.fullname} has been added successfully!`);
                 closeAddPlayerModal();
                 resolve();
             })
