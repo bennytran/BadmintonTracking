@@ -1,4 +1,6 @@
 // Version 1.2.0 - Fixed player addition functionality and added success notifications
+// Version 1.2.1 - Updated UI layout and player information display
+// Version 1.2.2 - Fixed form submission redirect issue
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -110,15 +112,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Form submission
-        addPlayerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+        addPlayerForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevent form submission
+            e.stopPropagation(); // Stop event bubbling
+
             const playerData = {
                 username: document.getElementById('username').value,
                 fullname: document.getElementById('fullname').value,
-                phone: document.getElementById('phone').value,
-                status: document.querySelector('input[name="status"]:checked').value
+                phone: document.getElementById('phone').value
             };
-            addNewPlayer(playerData);
+
+            // Call addNewPlayer and wait for it to complete
+            try {
+                await addNewPlayer(playerData);
+            } catch (error) {
+                console.error('Error in form submission:', error);
+            }
+
+            return false; // Extra prevention of form submission
         });
     }
 
@@ -286,7 +297,7 @@ function displayPlayers() {
     // Group players by first letter and sort within groups
     const groupedPlayers = {};
     players.forEach(player => {
-        const firstLetter = player.charAt(0).toUpperCase();
+        const firstLetter = player.username.charAt(0).toUpperCase();
         if (!groupedPlayers[firstLetter]) {
             groupedPlayers[firstLetter] = [];
         }
@@ -295,7 +306,7 @@ function displayPlayers() {
 
     // Sort names within each letter group
     Object.keys(groupedPlayers).forEach(letter => {
-        groupedPlayers[letter].sort((a, b) => a.localeCompare(b));
+        groupedPlayers[letter].sort((a, b) => a.username.localeCompare(b.username));
     });
 
     // Display sorted groups
@@ -311,17 +322,17 @@ function displayPlayers() {
         groupedPlayers[letter].forEach(player => {
             const playerItem = document.createElement('div');
             playerItem.className = 'player-item';
-            playerItem.setAttribute('data-player', player);
-            const isSelected = selectedPlayers.has(player);
+            playerItem.setAttribute('data-player', player.username);
 
             playerItem.innerHTML = `
-                <span class="player-name">${player}</span>
+                <div class="player-info">
+                    <span class="player-username">${player.username}</span>
+                    <span class="player-fullname">${player.fullname}</span>
+                    <span class="player-phone">${player.phone}</span>
+                </div>
                 <div class="button-group">
-                    <button class="add-btn ${isSelected ? 'selected' : ''}" 
-                            onclick="togglePlayerSelection(this, '${player}')"
-                            style="background-color: ${isSelected ? '#6c757d' : ''}"
-                            data-player="${player}">Add</button>
-                    <button class="remove-btn" onclick="showRemoveConfirmation('${player}')">Remove</button>
+                    <button class="add-btn" onclick="togglePlayerSelection(this, '${player.username}')">Add</button>
+                    <button class="remove-btn" onclick="showRemoveConfirmation('${player.username}')">Remove</button>
                 </div>
             `;
             letterSection.appendChild(playerItem);
@@ -607,10 +618,10 @@ function performSearch() {
     // Show only matching players and their sections
     let foundMatch = false;
     players.forEach(player => {
-        const playerElement = document.querySelector(`.player-item[data-player="${player}"]`);
+        const playerElement = document.querySelector(`.player-item[data-player="${player.username}"]`);
         if (!playerElement) return;
 
-        if (player.toLowerCase().includes(searchText)) {
+        if (player.username.toLowerCase().includes(searchText)) {
             foundMatch = true;
             playerElement.style.display = 'flex';
             // Show the parent letter section
@@ -642,13 +653,13 @@ function highlightMatch(text, searchTerm) {
 // Handle search item selection
 function selectSearchItem(player) {
     const searchInput = document.getElementById('searchInput');
-    searchInput.value = player;
+    searchInput.value = player.username;
     document.getElementById('searchDropdown').style.display = 'none';
 
     // Find and click the add button for this player
-    const addBtn = document.querySelector(`.add-btn[data-player="${player}"]`);
+    const addBtn = document.querySelector(`.add-btn[data-player="${player.username}"]`);
     if (addBtn && !addBtn.classList.contains('selected')) {
-        togglePlayerSelection(addBtn, player);
+        togglePlayerSelection(addBtn, player.username);
     }
 }
 
@@ -660,12 +671,12 @@ function searchPlayers() {
 
     if (searchText.length > 0) {
         const matches = players.filter(player =>
-            player.toLowerCase().includes(searchText)
+            player.username.toLowerCase().includes(searchText)
         );
 
         dropdown.innerHTML = matches
             .map((player, index) => {
-                const highlightedName = player.replace(
+                const highlightedName = player.username.replace(
                     new RegExp(searchText, 'gi'),
                     match => `<strong>${match}</strong>`
                 );
@@ -685,13 +696,13 @@ function searchPlayers() {
 // Fix player selection from dropdown
 function selectPlayer(player) {
     const searchInput = document.getElementById('searchInput');
-    searchInput.value = player;
+    searchInput.value = player.username;
     document.getElementById('searchDropdown').style.display = 'none';
 
     // Find and click the corresponding Add button
     const addButtons = document.querySelectorAll('.add-btn');
     addButtons.forEach(button => {
-        if (button.dataset.player === player) {
+        if (button.dataset.player === player.username) {
             button.click();
         }
     });
@@ -740,47 +751,6 @@ function closeAddPlayerModal() {
     document.getElementById('addPlayerForm').reset();
     clearErrors();
 }
-
-// Update the event listener in your DOMContentLoaded
-document.addEventListener('DOMContentLoaded', () => {
-    // ... existing code ...
-
-    // Add player button click handler
-    const addPlayerBtn = document.getElementById('addPlayerBtn');
-    if (addPlayerBtn) {
-        addPlayerBtn.addEventListener('click', showAddPlayerModal);
-        console.log('Add Player button listener added'); // Debug log
-    } else {
-        console.error('Add Player button not found');
-    }
-
-    // Form validation
-    const addPlayerForm = document.getElementById('addPlayerForm');
-    if (addPlayerForm) {
-        // Add input validation listeners
-        ['username', 'fullname', 'phone'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input) {
-                input.addEventListener('input', validateForm);
-            }
-        });
-
-        // Form submission
-        addPlayerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const playerData = {
-                username: document.getElementById('username').value,
-                fullname: document.getElementById('fullname').value,
-                phone: document.getElementById('phone').value,
-                status: document.querySelector('input[name="status"]:checked').value
-            };
-            addNewPlayer(playerData);
-        });
-    }
-});
-
-// Add some debug logging
-console.log('Script loaded'); // This will help verify the script is running
 
 // Real-time validation
 function setupRealTimeValidation() {
@@ -838,25 +808,19 @@ function setupRealTimeValidation() {
 }
 
 function addNewPlayer(playerData) {
-    // Generate a unique key for the new player
-    const newPlayerRef = db.ref('players').push();
+    return new Promise((resolve, reject) => {
+        const newPlayerRef = db.ref('players').push();
 
-    // Create the player object
-    const player = {
-        username: playerData.username,
-        fullname: playerData.fullname,
-        phone: playerData.phone,
-        status: playerData.status
-    };
-
-    // Add to Firebase
-    newPlayerRef.set(player)
-        .then(() => {
-            showNotification(`${playerData.fullname} has been added successfully!`);
-            closeAddPlayerModal(); // Close the modal after successful addition
-        })
-        .catch(error => {
-            console.error('Error adding player:', error);
-            showNotification('Error adding player', 'error');
-        });
+        newPlayerRef.set(playerData)
+            .then(() => {
+                showNotification(`${playerData.fullname} has been added successfully!`);
+                closeAddPlayerModal();
+                resolve();
+            })
+            .catch(error => {
+                console.error('Error adding player:', error);
+                showNotification('Error adding player', 'error');
+                reject(error);
+            });
+    });
 }

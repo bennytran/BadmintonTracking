@@ -39,22 +39,27 @@ body {
 }
 
 .player-item {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr auto;
+    gap: 15px;
     align-items: center;
     padding: 12px 16px;
-    border-bottom: 1px solid #eee;
-    width: 100%;
-    box-sizing: border-box;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .player-item:last-child {
     border-bottom: none;
 }
 
-.player-name {
-    flex: 1;
-    margin-right: 10px;
+.player-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.player-username,
+.player-fullname,
+.player-phone {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -505,13 +510,15 @@ input[type="date"] {
 }
 
 .add-player-section {
-    background-color: #ffffff;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     display: flex;
-    gap: 15px;
-    margin: 20px 0;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 0;
+}
+
+.centered-btn {
+    font-size: 1.2em;
+    padding: 15px 30px;
 }
 
 .add-player-section input[type="text"] {
