@@ -2,7 +2,7 @@
 // Version 1.2.1 - Updated UI layout and player information display
 // Version 1.2.2 - Fixed form submission redirect issue
 // Version 1.2.3 - Fixed player list display and data handling
-// Version 1.2.4 - Fixed add player functionality
+// Version 1.2.4 - Fixed add player functionality and validation
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     db.ref().once('value')
         .then(() => {
             console.log("Successfully connected to Firebase!");
-            // Initialize the rest of your app
             if (!isListenerInitialized) {
                 loadData();
             }
@@ -66,9 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const addPlayerBtn = document.getElementById('addPlayerBtn');
     if (addPlayerBtn) {
         addPlayerBtn.addEventListener('click', showAddPlayerModal);
-        console.log('Add Player button listener added'); // Debug log
-    } else {
-        console.error('Add Player button not found');
+        console.log('Add Player button listener added');
     }
 
     // Search input event listeners
@@ -105,34 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Form validation
     const addPlayerForm = document.getElementById('addPlayerForm');
     if (addPlayerForm) {
-        // Add input validation listeners
-        ['username', 'fullname', 'phone'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input) {
-                input.addEventListener('input', validateForm);
-            }
-        });
-
-        // Form submission
-        addPlayerForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Prevent form submission
-            e.stopPropagation(); // Stop event bubbling
-
-            const playerData = {
-                username: document.getElementById('username').value,
-                fullname: document.getElementById('fullname').value,
-                phone: document.getElementById('phone').value
-            };
-
-            // Call addNewPlayer and wait for it to complete
-            try {
-                await addNewPlayer(playerData);
-            } catch (error) {
-                console.error('Error in form submission:', error);
-            }
-
-            return false; // Extra prevention of form submission
-        });
+        // Initialize real-time validation for the form
+        setupRealTimeValidation();
     }
 
     // Real-time validation
@@ -686,14 +657,13 @@ function showAddPlayerModal() {
     // Reset form and validation states
     const form = document.getElementById('addPlayerForm');
     form.reset();
-    setupRealTimeValidation();
 
     // Remove any existing event listeners
     const submitBtn = document.getElementById('submitPlayerBtn');
     const newSubmitBtn = submitBtn.cloneNode(true);
     submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
 
-    // Add new click event listener (not form submit)
+    // Add new click event listener
     newSubmitBtn.addEventListener('click', async () => {
         const playerData = {
             username: document.getElementById('username').value,
@@ -708,6 +678,9 @@ function showAddPlayerModal() {
             showNotification('Error adding player', 'error');
         }
     });
+
+    // Setup validation after resetting
+    setupRealTimeValidation();
 }
 
 function closeAddPlayerModal() {
@@ -782,7 +755,6 @@ function addNewPlayer(playerData) {
             return;
         }
 
-        // Create a new reference with push()
         const newPlayerRef = db.ref('players').push();
 
         console.log('Adding player:', playerData); // Debug log
