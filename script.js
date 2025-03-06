@@ -4,6 +4,7 @@
 // Version 1.2.3 - Fixed player list display and data handling
 // Version 1.2.4 - Fixed add player functionality and validation
 // Version 1.2.5 - Fixed form validation reset
+// Version 1.2.6 - Fixed column alignment and added username uniqueness check
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -282,6 +283,7 @@ function displayPlayers() {
     sortedPlayers.forEach(player => {
         const playerItem = document.createElement('div');
         playerItem.className = 'player-item';
+        // Simplified grid structure - no nested player-info div
         playerItem.innerHTML = `
             <span class="player-username">${player.username || ''}</span>
             <span class="player-fullname">${player.fullname || ''}</span>
@@ -470,16 +472,8 @@ function showNotification(message, type = 'success') {
     notification.textContent = message;
     document.body.appendChild(notification);
 
-    // Add some styling for visibility
-    notification.style.position = 'fixed';
-    notification.style.top = '20px';
-    notification.style.right = '20px';
-    notification.style.padding = '15px 25px';
-    notification.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
-    notification.style.color = 'white';
-    notification.style.borderRadius = '4px';
-    notification.style.zIndex = '1000';
-    notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+    // Style based on type
+    notification.style.backgroundColor = type === 'success' ? 'var(--accent-green)' : 'var(--accent-red)';
 
     // Remove notification after 3 seconds
     setTimeout(() => {
@@ -766,18 +760,24 @@ function setupRealTimeValidation() {
 
 function addNewPlayer(playerData) {
     return new Promise((resolve, reject) => {
-        // Add validation
-        if (!playerData.username || !playerData.fullname || !playerData.phone) {
-            showNotification('Please fill all required fields', 'error');
-            reject(new Error('Missing required fields'));
-            return;
-        }
+        // First check if username already exists
+        db.ref('players').once('value')
+            .then((snapshot) => {
+                const existingPlayers = snapshot.val() || {};
+                const usernameExists = Object.values(existingPlayers)
+                    .some(player => player.username === playerData.username);
 
-        const newPlayerRef = db.ref('players').push();
+                if (usernameExists) {
+                    showNotification('Username already exists!', 'error');
+                    reject(new Error('Username already exists'));
+                    return;
+                }
 
-        console.log('Adding player:', playerData); // Debug log
+                // If username is unique, proceed with adding the player
+                const newPlayerRef = db.ref('players').push();
 
-        newPlayerRef.set(playerData)
+                return newPlayerRef.set(playerData);
+            })
             .then(() => {
                 console.log('Successfully added player:', playerData);
                 showNotification(`${playerData.fullname} has been added successfully!`);
