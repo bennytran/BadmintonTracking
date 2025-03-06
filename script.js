@@ -3,6 +3,7 @@
 // Version 1.2.2 - Fixed form submission redirect issue
 // Version 1.2.3 - Fixed player list display and data handling
 // Version 1.2.4 - Fixed add player functionality and validation
+// Version 1.2.5 - Fixed form validation reset
 
 // Start of script.js - remove any Firebase config from here
 // Just keep your application logic
@@ -656,8 +657,27 @@ function showAddPlayerModal() {
     const form = document.getElementById('addPlayerForm');
     form.reset();
 
-    // Remove any existing event listeners
+    // Remove validation classes from all inputs
+    const fields = form.querySelectorAll('input');
+    fields.forEach(field => {
+        field.classList.remove('valid', 'invalid');
+    });
+
+    // Reset hint messages
+    const hints = form.querySelectorAll('.hint-message');
+    hints.forEach(hint => {
+        hint.classList.remove('error');
+    });
+
+    // Reset submit button state
     const submitBtn = document.getElementById('submitPlayerBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.backgroundColor = '#ccc';
+        submitBtn.style.cursor = 'not-allowed';
+    }
+
+    // Remove any existing event listeners
     const newSubmitBtn = submitBtn.cloneNode(true);
     submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
 
@@ -677,7 +697,7 @@ function showAddPlayerModal() {
         }
     });
 
-    // Setup validation after resetting
+    // Setup validation after resetting everything
     setupRealTimeValidation();
 }
 
