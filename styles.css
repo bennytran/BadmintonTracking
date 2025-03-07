@@ -874,31 +874,7 @@ screen and (min-resolution: 192dpi) {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Add styles for the column headers */
-.list-headers {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr auto;
-    gap: 15px;
-    padding: 12px 16px;
-    background-color: #e3f2fd;
-    border-radius: 8px 8px 0 0;
-    font-weight: bold;
-    color: var(--text-primary);
-    margin-top: 15px;
-}
-
-.header-username,
-.header-fullname,
-.header-phone,
-.header-actions {
-    padding: 8px 0;
-}
-
-.header-actions {
-    text-align: center;
-}
-
-/* Update grid layouts for consistent alignment */
+/* Grid layout for headers and items */
 .list-headers,
 .player-item {
     display: grid;
@@ -908,6 +884,7 @@ screen and (min-resolution: 192dpi) {
     padding: 12px 16px;
 }
 
+/* Header specific styles */
 .list-headers {
     background-color: #e3f2fd;
     border-radius: 8px 8px 0 0;
@@ -916,25 +893,36 @@ screen and (min-resolution: 192dpi) {
     margin-top: 15px;
 }
 
-.player-item {
-    border-bottom: 1px solid var(--border-color);
-}
-
-/* Individual column styles */
-.player-username,
-.player-fullname,
-.player-phone,
-.header-username,
-.header-fullname,
-.header-phone {
+/* Common cell styles */
+.header-cell,
+.cell {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     padding-right: 10px;
 }
 
-.button-group {
+/* Player item specific styles */
+.player-item {
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Actions cell specific styles */
+.cell.actions {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
+}
+
+/* Remove any old classes that might interfere */
+.player-info,
+.player-username,
+.player-fullname,
+.player-phone,
+.header-username,
+.header-fullname,
+.header-phone,
+.header-actions {
+    display: none;
+    /* Or remove these classes entirely */
 }

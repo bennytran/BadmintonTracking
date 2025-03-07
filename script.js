@@ -283,12 +283,12 @@ function displayPlayers() {
     sortedPlayers.forEach(player => {
         const playerItem = document.createElement('div');
         playerItem.className = 'player-item';
-        // Simplified grid structure - no nested player-info div
+        // Ensure exact four-column structure matching headers
         playerItem.innerHTML = `
-            <span class="player-username">${player.username || ''}</span>
-            <span class="player-fullname">${player.fullname || ''}</span>
-            <span class="player-phone">${player.phone || ''}</span>
-            <div class="button-group">
+            <div class="cell">${player.username || ''}</div>
+            <div class="cell">${player.fullname || ''}</div>
+            <div class="cell">${player.phone || ''}</div>
+            <div class="cell actions">
                 <button class="add-btn" onclick="togglePlayerSelection(this, '${player.username}')">Add</button>
                 <button class="remove-btn" onclick="showRemoveConfirmation('${player.username}')">Remove</button>
             </div>
