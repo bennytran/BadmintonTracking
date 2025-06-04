@@ -846,34 +846,6 @@ screen and (min-resolution: 192dpi) {
     color: var(--accent-red);
 }
 
-/* Submit button styles */
-.confirm-btn {
-    background-color: #ccc;
-    color: white;
-    padding: 12px 28px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.confirm-btn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.confirm-btn:not(:disabled) {
-    background-color: var(--accent-green);
-    cursor: pointer;
-}
-
-.confirm-btn:not(:disabled):hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 /* Grid layout for headers and items */
 .list-headers,
 .player-item {

@@ -241,9 +241,10 @@ function addPlayer() {
         .join(' ');
 
     // Check for duplicates (case-insensitive)
-    const nameExists = players.some(player =>
-        player.toLowerCase() === normalizedName.toLowerCase()
-    );
+    const nameExists = players.some(player => {
+        const playerName = typeof player === 'string' ? player : player.username;
+        return (playerName || '').toLowerCase() === normalizedName.toLowerCase();
+    });
 
     if (nameExists) {
         alert('This player already exists!');
@@ -601,8 +602,8 @@ function searchPlayers() {
                     match => `<strong>${match}</strong>`
                 );
                 return `
-                    <div class="dropdown-item ${index === selectedSearchItem ? 'selected' : ''}" 
-                         onclick="selectPlayer('${player}')">
+                    <div class="dropdown-item ${index === selectedSearchItem ? 'selected' : ''}"
+                         onclick="selectPlayer('${player.username}')">
                         ${highlightedName}
                     </div>`;
             })
@@ -615,6 +616,9 @@ function searchPlayers() {
 
 // Fix player selection from dropdown
 function selectPlayer(player) {
+    if (typeof player === 'string') {
+        player = { username: player };
+    }
     const searchInput = document.getElementById('searchInput');
     searchInput.value = player.username;
     document.getElementById('searchDropdown').style.display = 'none';
