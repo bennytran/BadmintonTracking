@@ -241,9 +241,15 @@ function addPlayer() {
         .join(' ');
 
     // Check for duplicates (case-insensitive)
-    const nameExists = players.some(player =>
-        player.toLowerCase() === normalizedName.toLowerCase()
-    );
+    const nameExists = players.some(player => {
+        if (typeof player === 'string') {
+            return player.toLowerCase() === normalizedName.toLowerCase();
+        }
+        if (player && player.username) {
+            return player.username.toLowerCase() === normalizedName.toLowerCase();
+        }
+        return false;
+    });
 
     if (nameExists) {
         alert('This player already exists!');
@@ -791,3 +797,5 @@ function addNewPlayer(playerData) {
             });
     });
 }
+
+if (typeof module !== "undefined") { module.exports = { addPlayer, saveAttendance, deleteAttendance, displayPlayers, displayAttendanceHistory, togglePlayerSelection, toggleSelectAll, getSelectedPlayers, showAddPlayerModal, addNewPlayer }; }
