@@ -601,8 +601,8 @@ function searchPlayers() {
                     match => `<strong>${match}</strong>`
                 );
                 return `
-                    <div class="dropdown-item ${index === selectedSearchItem ? 'selected' : ''}" 
-                         onclick="selectPlayer('${player}')">
+                    <div class="dropdown-item ${index === selectedSearchItem ? 'selected' : ''}"
+                         onclick="selectPlayerByUsername('${player.username}')">
                         ${highlightedName}
                     </div>`;
             })
@@ -626,6 +626,14 @@ function selectPlayer(player) {
             button.click();
         }
     });
+}
+
+// Helper to select a player when only the username is available
+function selectPlayerByUsername(username) {
+    const player = players.find(p => p.username === username);
+    if (player) {
+        selectPlayer(player);
+    }
 }
 
 
@@ -790,4 +798,14 @@ function addNewPlayer(playerData) {
                 reject(error);
             });
     });
+}
+
+// Export functions for testing in Node environments
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        addPlayer,
+        saveAttendance,
+        selectPlayerByUsername,
+        selectPlayer,
+    };
 }
