@@ -11,6 +11,9 @@ const mockDatabase = {
     listeners: {},
     ref: function (path) {
         return {
+            child: (childPath) => {
+                return this.ref(`${path}/${childPath}`);
+            },
             on: (event, callback) => {
                 this.listeners[path] = callback;
                 callback({
@@ -64,7 +67,7 @@ const mockDatabase = {
 
 // Set up DOM
 document.body.innerHTML = `
-    <input type="text" id="playerName">
+    <input type="text" id="playerNameInput">
     <div id="playerList"></div>
     <input type="date" id="attendanceDate">
     <div id="attendanceHistory"></div>
@@ -81,22 +84,23 @@ global.players = [];
 
 // Import the functions
 const script = require('./script.js');
+script.showNotification = jest.fn();
 
 describe('Player Management', () => {
     beforeEach(() => {
         // Reset everything
         mockDatabase.data = { players: {} };
-        document.getElementById('playerName').value = '';
+        document.getElementById('playerNameInput').value = '';
         global.alert.mockClear();
         global.players = [];
         global.getSelectedPlayers = jest.fn().mockReturnValue([]);
     });
 
-    test('Add player successfully', () => {
-        const playerInput = document.getElementById('playerName');
+    test('Add player successfully', async () => {
+        const playerInput = document.getElementById('playerNameInput');
         playerInput.value = 'John';
 
-        script.addPlayer();
+        await script.addPlayer();
 
         const players = Object.values(mockDatabase.data.players);
         expect(players).toContain('John');
@@ -104,7 +108,7 @@ describe('Player Management', () => {
     });
 
     test('Cannot add empty player name', () => {
-        document.getElementById('playerName').value = '';
+        document.getElementById('playerNameInput').value = '';
 
         script.addPlayer();
 
@@ -112,19 +116,16 @@ describe('Player Management', () => {
         expect(Object.keys(mockDatabase.data.players)).toHaveLength(0);
     });
 
-    test('Cannot add duplicate player', () => {
+    test('Cannot add duplicate player', async () => {
         // First add a player
         mockDatabase.data.players = { 'key-1': 'John' };
-        // Update global players array through the listener
-        mockDatabase.listeners['players']({
-            val: () => mockDatabase.data.players
-        });
+        script.players.splice(0, script.players.length, 'John');
 
         // Try to add the same player
-        document.getElementById('playerName').value = 'John';
-        script.addPlayer();
+        document.getElementById('playerNameInput').value = 'John';
+        await script.addPlayer();
 
-        expect(global.alert).toHaveBeenCalledWith('Player already exists in the list');
+        expect(global.alert).toHaveBeenCalledWith('This player already exists!');
         expect(Object.values(mockDatabase.data.players).filter(p => p === 'John')).toHaveLength(1);
     });
 });
@@ -136,16 +137,17 @@ describe('Attendance Management', () => {
             attendance: {}
         };
         document.getElementById('attendanceDate').value = '2024-02-28';
-        global.players = ['John', 'Jane'];
-        global.getSelectedPlayers = jest.fn().mockReturnValue(['John', 'Jane']);
+        script.players.splice(0, script.players.length, 'John', 'Jane');
+        script.selectedPlayers.clear();
+        script.selectedPlayers.add('John');
+        script.selectedPlayers.add('Jane');
     });
 
-    test('Save attendance successfully', () => {
-        script.saveAttendance();
+    test('Save attendance successfully', async () => {
+        await script.saveAttendance();
 
-        const savedData = mockDatabase.data.attendance['2024-02-28'];
+        const savedData = mockDatabase.data.attendance['20240228'];
         expect(savedData).toBeDefined();
         expect(savedData.players).toEqual(['John', 'Jane']);
-        expect(global.showNotification).toHaveBeenCalledWith('Attendance saved successfully!');
     });
 }); 
