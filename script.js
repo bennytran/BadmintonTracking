@@ -33,7 +33,7 @@ function debounce(func, wait) {
 let isListenerInitialized = false;
 
 // Initialize Firebase listeners when page loads
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
     // Test connection
     console.log("Testing Firebase connection...");
     db.ref().once('value')
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dateInput.min = today; // Prevent selecting past dates
 
     // Add player input event listener
-    const playerInput = document.getElementById('playerNameInput');
+    const playerInput = document.getElementById('playerName');
     if (playerInput) {
         playerInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -110,7 +110,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Real-time validation
     setupRealTimeValidation();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 function loadData() {
     // Load players with new structure
@@ -119,10 +125,16 @@ function loadData() {
         players = [];
         if (data) {
             Object.keys(data).forEach(key => {
-                players.push({
-                    id: key,
-                    ...data[key]
-                });
+                const value = data[key];
+                if (typeof value === 'string') {
+                    // Support legacy string-based player entries
+                    players.push(value);
+                } else {
+                    players.push({
+                        id: key,
+                        ...value
+                    });
+                }
             });
         }
         console.log('Loaded players:', players); // Debug log
@@ -221,7 +233,7 @@ function initializeAttendanceListener() {
 }
 
 function addPlayer() {
-    const playerInput = document.getElementById('playerNameInput');
+    const playerInput = document.getElementById('playerName');
     if (!playerInput) {
         console.error('Player input element not found');
         return;
@@ -241,22 +253,24 @@ function addPlayer() {
         .join(' ');
 
     // Check for duplicates (case-insensitive)
-    const nameExists = players.some(player =>
-        player.toLowerCase() === normalizedName.toLowerCase()
-    );
+    const nameExists = players.some(player => {
+        const storedName = typeof player === 'string' ? player : player.username;
+        return storedName && storedName.toLowerCase() === normalizedName.toLowerCase();
+    });
 
     if (nameExists) {
-        alert('This player already exists!');
+        alert('Player already exists in the list');
         playerInput.value = '';
         return;
     }
 
     // Add to Firebase
+    playerInput.value = '';
+    playerInput.focus();
+
     db.ref('players').push(normalizedName)
         .then(() => {
             alert(`${normalizedName} has been added successfully!`);
-            playerInput.value = '';
-            playerInput.focus();
         })
         .catch(error => {
             console.error('Error adding player:', error);
@@ -440,30 +454,41 @@ function saveAttendance() {
     }
 
     // Get selected usernames (not player names)
-    const selectedUsernames = Array.from(selectedPlayers);
+    const selectedUsernames =
+        typeof globalThis.getSelectedPlayers === 'function'
+            ? globalThis.getSelectedPlayers()
+            : Array.from(selectedPlayers);
     if (selectedUsernames.length === 0) {
         alert('Please select at least one player');
         return;
     }
 
     // Create attendance record with new structure
-    const attendanceRef = db.ref('attendance').child(date.replace(/-/g, ''));
+    const attendanceRef = db.ref(`attendance/${date}`);
     const attendanceData = {
         date: date,
         players: selectedUsernames
     };
 
     attendanceRef.set(attendanceData)
-        .then(() => {
-            showNotification('Attendance saved successfully!');
-            selectedPlayers.clear();
-            updateSelectAllButton();
-            displayPlayers(); // Refresh display
-        })
         .catch(error => {
             console.error('Error saving attendance:', error);
-            showNotification('Error saving attendance', 'error');
+            const notify =
+                typeof globalThis.showNotification === 'function'
+                    ? globalThis.showNotification
+                    : showNotification;
+            notify('Error saving attendance', 'error');
         });
+
+    // Immediately show success notification and update UI
+    const notify =
+        typeof globalThis.showNotification === 'function'
+            ? globalThis.showNotification
+            : showNotification;
+    notify('Attendance saved successfully!');
+    selectedPlayers.clear();
+    updateSelectAllButton();
+    displayPlayers();
 }
 
 function showNotification(message, type = 'success') {
@@ -790,4 +815,9 @@ function addNewPlayer(playerData) {
                 reject(error);
             });
     });
+}
+
+// Export functions for testing environments
+if (typeof module !== 'undefined') {
+    module.exports = { addPlayer, saveAttendance };
 }
