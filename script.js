@@ -251,8 +251,8 @@ function addPlayer() {
         return;
     }
 
-    // Add to Firebase
-    db.ref('players').push(normalizedName)
+    // Add to Firebase and return the promise for testability
+    return db.ref('players').push(normalizedName)
         .then(() => {
             alert(`${normalizedName} has been added successfully!`);
             playerInput.value = '';
@@ -453,7 +453,7 @@ function saveAttendance() {
         players: selectedUsernames
     };
 
-    attendanceRef.set(attendanceData)
+    return attendanceRef.set(attendanceData)
         .then(() => {
             showNotification('Attendance saved successfully!');
             selectedPlayers.clear();
@@ -790,4 +790,14 @@ function addNewPlayer(playerData) {
                 reject(error);
             });
     });
+}
+
+// Export functions for testing environment (Node.js)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        addPlayer,
+        saveAttendance,
+        players,
+        selectedPlayers,
+    };
 }
